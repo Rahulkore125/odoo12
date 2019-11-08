@@ -1,0 +1,4 @@
+[submodule "Rahulkore125/odoo12/magento2_connector"]
+	path = Rahulkore125/odoo12/magento2_connector
+	url = git@github.com:Rahulkore125/odoo12.git
+	branch = developer
