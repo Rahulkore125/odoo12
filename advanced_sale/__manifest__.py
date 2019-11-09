@@ -18,12 +18,13 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['base', 'sale'],
 
     # always loaded
     'data': [
         # 'security/ir.model.access.csv',
-        'views/res_partner_view.xml'
+        'views/res_partner_view.xml',
+        'views/sale_order_view.xml'
     ],
     # only loaded in demonstration mode
     'demo': [

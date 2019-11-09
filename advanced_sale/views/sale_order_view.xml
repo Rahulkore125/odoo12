@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+       <!-- Inherit Form View to Modify it -->
+       <record id="sale_order_form_inherit" model="ir.ui.view">
+           <field name="name">Sale Order Form Inherit</field>
+           <field name="model">sale.order</field>
+           <field name="inherit_id" ref="sale.view_order_form"/>
+           <field name="arch" type="xml">
+               <xpath expr="//field[@name='validity_date']" position="attributes">
+                   <attribute name="invisible">1</attribute>
+               </xpath>
+               <xpath expr="//field[@name='payment_term_id']" position="attributes">
+                   <attribute name="invisible">1</attribute>
+               </xpath>
+               <xpath expr="//tree/field[@name='tax_id']" position="attributes">
+                   <attribute name="invisible">1</attribute>
+               </xpath>
+               <xpath expr="//control" position="replace">
+               </xpath>
+               <xpath expr="//button[@name='action_quotation_send']" position="attributes">
+                   <attribute name="invisible">1</attribute>
+               </xpath>
+               <xpath expr="//button[@name='print_quotation']" position="attributes">
+                   <attribute name="invisible">1</attribute>
+               </xpath>
+               <xpath expr="//button[@name='preview_sale_order']" position="attributes">
+                   <attribute name="invisible">1</attribute>
+               </xpath>
+               <xpath expr="//field[@name='partner_id']" position="after">
+                   <field name="team_id"/>
+               </xpath>
+           </field>
+       </record>
+    </data>
+</odoo>
