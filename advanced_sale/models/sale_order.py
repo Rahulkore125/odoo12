@@ -15,3 +15,14 @@ class SaleOrder(models.Model):
                     move_line.qty_done = move_line.product_uom_qty
                 stock_picking.action_done()
         return result
+
+
+class SaleOrderLine(models.Model):
+    _inherit = 'sale.order.line'
+
+    @api.onchange('product_id')
+    def onchange_unit_price(self):
+        print(self.order_id.partner_id)
+        print(self.product_id)
+        if self.product_id.id and not self.order_id.partner_id:
+            self.price_unit = self.product_id.list_price
