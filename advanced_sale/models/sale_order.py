@@ -6,6 +6,9 @@ class SaleOrder(models.Model):
 
     estimate_discount_total = fields.Monetary(string='Additional Whole Order Discount')
     computed_discount_total = fields.Monetary(string='Discount Total', compute='compute_discount_total')
+    payment_method = fields.Selection(string="Payment Method",
+                                      selection=[('cod', 'COD'), ('online_payment', 'Online Payment'), ],
+                                      required=False, default="cod")
 
     @api.multi
     @api.onchange('estimate_discount_total')

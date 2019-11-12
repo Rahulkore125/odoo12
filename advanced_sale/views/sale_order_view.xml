@@ -42,6 +42,7 @@
                 <xpath expr="//field[@name='partner_id']" position="after">
                     <field name="team_id"/>
                     <field name="estimate_discount_total"/>
+                    <field name="payment_method"/>
                 </xpath>
                 <xpath expr="//page[2]" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -55,6 +56,15 @@
                 </xpath>
                  <xpath expr="//button[@name='recompute_coupon_lines']" position="replace">
                      <button name="recompute_coupon_lines" string="Update Promotions" type="object" attrs="{'invisible': [('state', 'in', ['sale', 'done', 'cancel'])]}"  groups="base.group_system" />
+                </xpath>
+                <xpath expr="//field[@name='fiscal_position_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[@name='sales_person']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//group[@name='technical']" position="attributes">
+                    <attribute name="invisible">1</attribute>
                 </xpath>
             </field>
         </record>
