@@ -1,4 +1,12 @@
+from datetime import date
+
 from odoo import models, fields, api
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    date_done_delivery = fields.Date()
 
 
 class SaleOrder(models.Model):
@@ -9,6 +17,7 @@ class SaleOrder(models.Model):
     payment_method = fields.Selection(string="Payment Method",
                                       selection=[('cod', 'COD'), ('online_payment', 'Online Payment'), ],
                                       required=False, default="cod")
+    date_confirm_order = fields.Date()
 
     @api.multi
     @api.onchange('estimate_discount_total')
@@ -42,9 +51,11 @@ class SaleOrder(models.Model):
             stock_pickings = self.env['stock.picking'].search(
                 [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
             for stock_picking in stock_pickings:
-                for move_line in stock_picking.move_line_ids:
-                    move_line.qty_done = move_line.product_uom_qty
+                for move_line in stock_picking.move_lines:
+                    move_line.quantity_done = move_line.product_uom_qty
                 stock_picking.action_done()
+                stock_picking.date_done_delivery = date.today()
+        self.date_confirm_order = date.today()
         return result
 
     def _amount_all(self):

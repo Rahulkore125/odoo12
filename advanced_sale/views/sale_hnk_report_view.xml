@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="sale_hnk_report_action" model="ir.actions.act_window">
+            <field name="name">Sale HNK Report Action</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sale.hnk.report</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <record id="sale_hnk_report_form" model="ir.ui.view">
+            <field name="name">Sale &amp; Stock Report</field>
+            <field name="model">sale.hnk.report</field>
+            <field name="arch" type="xml">
+                <form string="Sale Heineken Form">
+                    <sheet>
+                        <group>
+                            <field name="date_report"/>
+                        </group>
+                        <footer>
+                            <button name="generate_report" type="object" class="oe_highlight"
+                                    string="Generate Report"/>
+                            <button string="Discard" class="oe_highlight" special="cancel"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <menuitem id="sale_hnk_report" name="Sale &amp; Stock Report" parent="sale.menu_sale_report" action="sale_hnk_report_action" sequence="100"/>
+    </data>
+</odoo>

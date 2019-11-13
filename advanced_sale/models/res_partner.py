@@ -6,3 +6,5 @@ class ResPartner(models.Model):
 
     title_gender = fields.Selection(string="Title", selection=[('miss', 'Miss'), ('mister', 'Mister')])
 
+
+
