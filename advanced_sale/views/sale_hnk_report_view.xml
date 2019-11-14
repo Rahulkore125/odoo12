@@ -9,6 +9,7 @@
             <field name="target">new</field>
         </record>
 
+
         <record id="sale_hnk_report_form" model="ir.ui.view">
             <field name="name">Sale &amp; Stock Report</field>
             <field name="model">sale.hnk.report</field>
@@ -16,7 +17,7 @@
                 <form string="Sale Heineken Form">
                     <sheet>
                         <group>
-                            <field name="date_report"/>
+                            <field name="datetime_report"/>
                         </group>
                         <footer>
                             <button name="generate_report" type="object" class="oe_highlight"
@@ -25,6 +26,30 @@
                         </footer>
                     </sheet>
                 </form>
+            </field>
+        </record>
+
+        <record id="sale_hnk_report_line_tree" model="ir.ui.view">
+            <field name="name">Sale HNK Report</field>
+            <field name="model">sale.hnk.report.line</field>
+            <field name="arch" type="xml">
+                <tree string="Sale HNK Report" create="false" delete="false" edit="false">
+                    <field name="product_id"/>
+                    <field name="open_stock"/>
+                    <field name="open_stock_units"/>
+                    <field name="damaged"/>
+                    <field name="sum_sale_chanel"/>
+                    <field name="sum_fp_chanel"/>
+                    <field name="sum_grab_chanel"/>
+                    <field name="amount_sale_cod"/>
+                    <field name="amount_sale_ol"/>
+                    <field name="amount_fp_cod"/>
+                    <field name="amount_fp_online"/>
+                    <field name="amount_grab"/>
+                    <field name="close_stock"/>
+                    <field name="close_stock_units"/>
+                    <field name="amount_discount"/>
+                </tree>
             </field>
         </record>
         <menuitem id="sale_hnk_report" name="Sale &amp; Stock Report" parent="sale.menu_sale_report" action="sale_hnk_report_action" sequence="100"/>

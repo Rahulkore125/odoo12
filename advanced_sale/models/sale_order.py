@@ -19,6 +19,12 @@ class SaleOrder(models.Model):
                                       required=False, default="cod")
     date_confirm_order = fields.Date()
 
+    @api.model
+    def create(self, vals_list):
+        print(vals_list)
+        res = super(SaleOrder, self).create(vals_list)
+        return res
+
     @api.multi
     @api.onchange('estimate_discount_total')
     def compute_discount_order_line(self):
