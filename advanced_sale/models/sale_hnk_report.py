@@ -75,29 +75,29 @@ class SaleHnkReport(models.Model):
         for e in product_ids:
             values.append([0, 0, product_ids[e]])
             product_id_array.append(e)
-        # res = self.env['sale.hnk.report'].create({
-        #     'date_report': self.date_report,
-        #     'report_line_ids': values
-        # })
+        res = self.env['sale.hnk.report'].create({
+            'date_report': self.date_report,
+            'report_line_ids': values
+        })
 
-        # tree_view_id = self.env.ref('advanced_sale.sale_hnk_report_line_tree').id
-        # action = {
-        #     'type': 'ir.actions.act_window',
-        #     'views': [(tree_view_id, 'tree')],
-        #     'view_mode': 'tree',
-        #     'name': 'Sale & Stock Report',
-        #     'res_model': 'sale.hnk.report.line',
-        #     'domain': [('sale_report_id', '=', res.id)]
-        # }
-        # return action
-        to_date = self.datetime_report.astimezone(local_tz)
-        to_date = fields.Datetime.to_datetime(to_date)
-        qty = self.env['product.product'].browse(product_id_array)._compute_quantities_dict(self._context.get('lot_id'),
-                                                                   self._context.get('owner_id'),
-                                                                   self._context.get('package_id'),
-                                                                   self._context.get('from_date'),
-                                                                   to_date=to_date)
-        print(qty)
+        tree_view_id = self.env.ref('advanced_sale.sale_hnk_report_line_tree').id
+        action = {
+            'type': 'ir.actions.act_window',
+            'views': [(tree_view_id, 'tree')],
+            'view_mode': 'tree',
+            'name': 'Sale & Stock Report',
+            'res_model': 'sale.hnk.report.line',
+            'domain': [('sale_report_id', '=', res.id)]
+        }
+        return action
+        # to_date = self.datetime_report.astimezone(local_tz)
+        # to_date = fields.Datetime.to_datetime(to_date)
+        # qty = self.env['product.product'].browse(product_id_array)._compute_quantities_dict(self._context.get('lot_id'),
+        #                                                            self._context.get('owner_id'),
+        #                                                            self._context.get('package_id'),
+        #                                                            self._context.get('from_date'),
+        #                                                            to_date=to_date)
+        # print(qty)
 
 
 class SaleHnkReportLine(models.Model):
