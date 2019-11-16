@@ -15,19 +15,17 @@
     # Check https://github.com/odoo/odoo/blob/12.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Uncategorized',
-    'version': '0.1',
+    'version': '1.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale'],
+    'depends': ['base', 'sale', 'delivery', 'mail', 'website_sale_coupon', 'stock', 'sales_team'],
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
+        'data/sale_team_heineken_data.xml',
         'views/res_partner_view.xml',
-        'views/sale_order_view.xml'
-    ],
-    # only loaded in demonstration mode
-    'demo': [
-        'demo/demo.xml',
+        'views/sale_order_view.xml',
+        'views/sale_hnk_report_view.xml'
     ],
 }
