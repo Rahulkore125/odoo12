@@ -17,7 +17,7 @@
                 <form string="Sale Heineken Form">
                     <sheet>
                         <group>
-                            <field name="datetime_report"/>
+                            <field name="datetime_report" required="1"/>
                         </group>
                         <footer>
                             <button name="generate_report" type="object" class="oe_highlight"
@@ -29,12 +29,24 @@
             </field>
         </record>
 
+        <record id="sale_hnk_report_line_search_view" model="ir.ui.view">
+            <field name="name">Sale HNK Report Search View</field>
+            <field name="model">sale.hnk.report.line</field>
+            <field name="arch" type="xml">
+                <search string="Search HNK Report">
+                    <filter name="group_category_id" string="Category" icon="terp-partner"
+                            context="{'group_by':'product_category_id'}"/>
+                </search>
+            </field>
+        </record>
+
         <record id="sale_hnk_report_line_tree" model="ir.ui.view">
             <field name="name">Sale HNK Report</field>
             <field name="model">sale.hnk.report.line</field>
             <field name="arch" type="xml">
                 <tree string="Sale HNK Report" create="false" delete="false" edit="false">
                     <field name="product_id"/>
+                    <!--                    <field name="product_category_id"/>-->
                     <field name="open_stock"/>
                     <field name="open_stock_units"/>
                     <field name="damaged"/>
@@ -52,6 +64,7 @@
                 </tree>
             </field>
         </record>
-        <menuitem id="sale_hnk_report" name="Sale &amp; Stock Report" parent="sale.menu_sale_report" action="sale_hnk_report_action" sequence="100"/>
+        <menuitem id="sale_hnk_report" name="Sale &amp; Stock Report" parent="sale.menu_sale_report"
+                  action="sale_hnk_report_action" sequence="100"/>
     </data>
 </odoo>
