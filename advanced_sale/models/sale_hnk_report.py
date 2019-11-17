@@ -1,28 +1,26 @@
-from datetime import date, datetime
-import pytz
+from datetime import date, timedelta
+
 from odoo import models, fields
 
 
 class SaleHnkReport(models.Model):
     _name = 'sale.hnk.report'
 
-    date_report = fields.Date(string="Date Report")
+    date_report = fields.Date(string="Date Report", default=fields.Date.today)
     report_line_ids = fields.One2many(comodel_name='sale.hnk.report.line', inverse_name='sale_report_id',
                                       string="Report Line")
     datetime_report = fields.Datetime(string="Datetime Report")
 
     def generate_report(self):
-        local_tz = pytz.timezone(
-            self.env.user.partner_id.tz or 'GMT')
+        # local_tz = pytz.timezone(
+        #     self.env.user.partner_id.tz or 'GMT')
 
         self.date_report = date(year=self.datetime_report.year, month=self.datetime_report.month,
                                 day=self.datetime_report.day)
 
-
         sale_orders = self.env['sale.order'].search([('date_confirm_order', '=', self.date_report)])
         stock_picking = self.env['stock.picking'].search([('date_done_delivery', '=', self.date_report)])
         values = []
-
 
         product_ids = {}
 
@@ -57,7 +55,6 @@ class SaleHnkReport(models.Model):
                                 'sum_grab_chanel'] += sale_order_line.product_uom_qty
                             product_ids[sale_order_line.product_id.id][
                                 'amount_grab'] += sale_order_line.price_subtotal
-
                     else:
                         product_ids[sale_order_line.product_id.id] = {
                             'product_id': sale_order_line.product_id.id,
@@ -71,10 +68,76 @@ class SaleHnkReport(models.Model):
                             'amount_grab': sale_order_line.price_subtotal if sale_order.team_id.id == grab else 0,
                         }
         product_id_array = []
-        print(product_ids)
+
+        # for e in product_ids:
+        #     values.append([0, 0, product_ids[e]])
+
+        # res = self.env['sale.hnk.report'].create({
+        #     'date_report': self.date_report,
+        #     'report_line_ids': values
+        # })
+        #
+        # tree_view_id = self.env.ref('advanced_sale.sale_hnk_report_line_tree').id
+        # action = {
+        #     'type': 'ir.actions.act_window',
+        #     'views': [(tree_view_id, 'tree')],
+        #     'view_mode': 'tree',
+        #     'name': 'Sale & Stock Report',
+        #     'res_model': 'sale.hnk.report.line',
+        #     'domain': [('sale_report_id', '=', res.id)]
+        # }
+        # return action
+        # to_date = self.datetime_report.astimezone(local_tz)
+        today_date = fields.Datetime.to_datetime(self.datetime_report)
+        previous_day_date = fields.Datetime.to_datetime(self.datetime_report) + timedelta(days=-1)
+        all_product = self.env['product.product'].search([])
+        qty_previous_day = self.env['product.product'].browse(all_product.ids)._compute_quantities_dict(
+            self._context.get('lot_id'),
+            self._context.get(
+                'owner_id'),
+            self._context.get(
+                'package_id'),
+            self._context.get(
+                'from_date'),
+            to_date=previous_day_date)
+        qty_today = self.env['product.product'].browse(all_product.ids)._compute_quantities_dict(
+            self._context.get('lot_id'),
+            self._context.get(
+                'owner_id'),
+            self._context.get(
+                'package_id'),
+            self._context.get(
+                'from_date'),
+            to_date=today_date)
+        for e in qty_today:
+            product = self.env['product.product'].browse(e)
+            precision = product.uom_so_id.factor_inv / product.uom_id.factor_inv
+            if e in product_ids:
+                product_ids[e]['product_category_id'] = product.categ_id.id,
+                product_ids[e]['close_stock'] = qty_today[e]['qty_available']
+                product_ids[e]['open_stock'] = qty_previous_day[e]['qty_available']
+                product_ids[e]['open_stock_units'] = product_ids[e]['open_stock'] * precision
+                product_ids[e]['close_stock_units'] = product_ids[e]['close_stock'] * precision
+
+            else:
+                product_ids[e] = {
+                    'product_id': e,
+                    'product_category_id': product.categ_id.id,
+                    'sum_sale_chanel': 0,
+                    'sum_fp_chanel': 0,
+                    'sum_grab_chanel': 0,
+                    'amount_sale_cod': 0,
+                    'amount_sale_ol': 0,
+                    'amount_fp_cod': 0,
+                    'amount_fp_online': 0,
+                    'amount_grab': 0,
+                    'open_stock': qty_previous_day[e]['qty_available'],
+                    'close_stock': qty_today[e]['qty_available'],
+                    'open_stock_units': qty_previous_day[e]['qty_available'] * precision,
+                    'close_stock_units': qty_today[e]['qty_available'] * precision
+                }
         for e in product_ids:
             values.append([0, 0, product_ids[e]])
-            product_id_array.append(e)
         res = self.env['sale.hnk.report'].create({
             'date_report': self.date_report,
             'report_line_ids': values
@@ -87,23 +150,17 @@ class SaleHnkReport(models.Model):
             'view_mode': 'tree',
             'name': 'Sale & Stock Report',
             'res_model': 'sale.hnk.report.line',
-            'domain': [('sale_report_id', '=', res.id)]
+            'domain': [('sale_report_id', '=', res.id)],
+            'context': {'search_default_group_category_id': 1}
         }
         return action
-        # to_date = self.datetime_report.astimezone(local_tz)
-        # to_date = fields.Datetime.to_datetime(to_date)
-        # qty = self.env['product.product'].browse(product_id_array)._compute_quantities_dict(self._context.get('lot_id'),
-        #                                                            self._context.get('owner_id'),
-        #                                                            self._context.get('package_id'),
-        #                                                            self._context.get('from_date'),
-        #                                                            to_date=to_date)
-        # print(qty)
 
 
 class SaleHnkReportLine(models.Model):
     _name = 'sale.hnk.report.line'
 
     product_id = fields.Many2one('product.product', string="Product")
+    product_category_id = fields.Many2one('product.category', string="Product Category")
     open_stock = fields.Float("Opening Stock")
     open_stock_units = fields.Float(string="UNITS btls/cans (Opening)")
     damaged = fields.Float(string="Damaged")

@@ -18,7 +18,7 @@
     'version': '1.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale', 'delivery', 'mail', 'website_sale_coupon', 'stock', 'sales_team'],
+    'depends': ['base', 'sale', 'delivery', 'mail', 'website_sale_coupon', 'stock', 'sales_team', 'uom'],
 
     # always loaded
     'data': [
@@ -26,6 +26,7 @@
         'data/sale_team_heineken_data.xml',
         'views/res_partner_view.xml',
         'views/sale_order_view.xml',
-        'views/sale_hnk_report_view.xml'
+        'views/sale_hnk_report_view.xml',
+        'views/product_product_view.xml'
     ],
 }
