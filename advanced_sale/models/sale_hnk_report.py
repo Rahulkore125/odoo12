@@ -12,14 +12,10 @@ class SaleHnkReport(models.Model):
     datetime_report = fields.Datetime(string="Datetime Report")
 
     def generate_report(self):
-        # local_tz = pytz.timezone(
-        #     self.env.user.partner_id.tz or 'GMT')
-
         self.date_report = date(year=self.datetime_report.year, month=self.datetime_report.month,
                                 day=self.datetime_report.day)
 
         sale_orders = self.env['sale.order'].search([('date_confirm_order', '=', self.date_report)])
-        stock_picking = self.env['stock.picking'].search([('date_done_delivery', '=', self.date_report)])
         values = []
 
         product_ids = {}
@@ -28,66 +24,7 @@ class SaleHnkReport(models.Model):
         food_panda = self.env.ref('advanced_sale.food_panda').id
         grab = self.env.ref('advanced_sale.grab').id
 
-        for sale_order in sale_orders:
-            for sale_order_line in sale_order.order_line:
-                if not sale_order_line.is_reward_line and not sale_order_line.is_delivery:
-                    if sale_order_line.product_id.id in product_ids:
-                        if sale_order.team_id.id == sale:
-                            product_ids[sale_order_line.product_id.id][
-                                'sum_sale_chanel'] += sale_order_line.product_uom_qty
-                            if sale_order.payment_method == 'cod':
-                                product_ids[sale_order_line.product_id.id][
-                                    'amount_sale_cod'] += sale_order_line.price_subtotal
-                            elif sale_order.payment_method == 'online_payment':
-                                product_ids[sale_order_line.product_id.id][
-                                    'amount_sale_ol'] += sale_order_line.price_subtotal
-                        elif sale_order.team_id.id == food_panda:
-                            product_ids[sale_order_line.product_id.id][
-                                'sum_fp_chanel'] += sale_order_line.product_uom_qty
-                            if sale_order.payment_method == 'cod':
-                                product_ids[sale_order_line.product_id.id][
-                                    'amount_fp_cod'] += sale_order_line.price_subtotal
-                            elif sale_order.payment_method == 'online_payment':
-                                product_ids[sale_order_line.product_id.id][
-                                    'amount_fp_online'] += sale_order_line.price_subtotal
-                        elif sale_order.team_id.id == grab:
-                            product_ids[sale_order_line.product_id.id][
-                                'sum_grab_chanel'] += sale_order_line.product_uom_qty
-                            product_ids[sale_order_line.product_id.id][
-                                'amount_grab'] += sale_order_line.price_subtotal
-                    else:
-                        product_ids[sale_order_line.product_id.id] = {
-                            'product_id': sale_order_line.product_id.id,
-                            'sum_sale_chanel': sale_order_line.product_uom_qty if sale_order.team_id.id == sale else 0,
-                            'sum_fp_chanel': sale_order_line.product_uom_qty if sale_order.team_id.id == food_panda else 0,
-                            'sum_grab_chanel': sale_order_line.product_uom_qty if sale_order.team_id.id == grab else 0,
-                            'amount_sale_cod': sale_order_line.price_subtotal if sale_order.team_id.id == sale and sale_order.payment_method == 'cod' else 0,
-                            'amount_sale_ol': sale_order_line.price_subtotal if sale_order.team_id.id == sale and sale_order.payment_method == 'online_payment' else 0,
-                            'amount_fp_cod': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'cod' else 0,
-                            'amount_fp_online': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'online_payment' else 0,
-                            'amount_grab': sale_order_line.price_subtotal if sale_order.team_id.id == grab else 0,
-                        }
-        product_id_array = []
-
-        # for e in product_ids:
-        #     values.append([0, 0, product_ids[e]])
-
-        # res = self.env['sale.hnk.report'].create({
-        #     'date_report': self.date_report,
-        #     'report_line_ids': values
-        # })
-        #
-        # tree_view_id = self.env.ref('advanced_sale.sale_hnk_report_line_tree').id
-        # action = {
-        #     'type': 'ir.actions.act_window',
-        #     'views': [(tree_view_id, 'tree')],
-        #     'view_mode': 'tree',
-        #     'name': 'Sale & Stock Report',
-        #     'res_model': 'sale.hnk.report.line',
-        #     'domain': [('sale_report_id', '=', res.id)]
-        # }
-        # return action
-        # to_date = self.datetime_report.astimezone(local_tz)
+        #handle stock
         today_date = fields.Datetime.to_datetime(self.datetime_report)
         previous_day_date = fields.Datetime.to_datetime(self.datetime_report) + timedelta(days=-1)
         all_product = self.env['product.product'].search([])
@@ -111,14 +48,15 @@ class SaleHnkReport(models.Model):
             to_date=today_date)
         for e in qty_today:
             product = self.env['product.product'].browse(e)
-            precision = product.uom_so_id.factor_inv / product.uom_id.factor_inv
+            precision = product.uom_id.factor_inv
             if e in product_ids:
                 product_ids[e]['product_category_id'] = product.categ_id.id,
                 product_ids[e]['close_stock'] = qty_today[e]['qty_available']
                 product_ids[e]['open_stock'] = qty_previous_day[e]['qty_available']
                 product_ids[e]['open_stock_units'] = product_ids[e]['open_stock'] * precision
                 product_ids[e]['close_stock_units'] = product_ids[e]['close_stock'] * precision
-
+                product_ids[e]['damaged'] = 0
+                product_ids[e]['amount_discount'] = 0
             else:
                 product_ids[e] = {
                     'product_id': e,
@@ -134,8 +72,67 @@ class SaleHnkReport(models.Model):
                     'open_stock': qty_previous_day[e]['qty_available'],
                     'close_stock': qty_today[e]['qty_available'],
                     'open_stock_units': qty_previous_day[e]['qty_available'] * precision,
-                    'close_stock_units': qty_today[e]['qty_available'] * precision
+                    'close_stock_units': qty_today[e]['qty_available'] * precision,
+                    'damaged': 0,
+                    'amount_discount': 0
                 }
+
+        for sale_order in sale_orders:
+
+            for sale_order_line in sale_order.order_line:
+
+                if not sale_order_line.is_reward_line and not sale_order_line.is_delivery:
+                    # handle sale
+                    if sale_order_line.product_id.id in product_ids:
+                        #handle amount and quantity
+                        if sale_order.team_id.id == sale:
+                            product_ids[sale_order_line.product_id.id][
+                                'sum_sale_chanel'] += sale_order_line.product_uom_qty
+                            if sale_order.payment_method == 'cod':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_sale_cod'] += sale_order_line.price_subtotal
+                            elif sale_order.payment_method == 'online_payment':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_sale_ol'] += sale_order_line.price_subtotal
+                        elif sale_order.team_id.id == food_panda:
+                            product_ids[sale_order_line.product_id.id][
+                                'sum_fp_chanel'] += sale_order_line.product_uom_qty
+                            if sale_order.payment_method == 'cod':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_fp_cod'] += sale_order_line.price_subtotal
+                            elif sale_order.payment_method == 'online_payment':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_fp_online'] += sale_order_line.price_subtotal
+                        elif sale_order.team_id.id == grab:
+                            product_ids[sale_order_line.product_id.id][
+                                'sum_grab_chanel'] += sale_order_line.product_uom_qty
+                            product_ids[sale_order_line.product_id.id][
+                                'amount_grab'] += sale_order_line.price_subtotal
+                        #handle amount discount
+                        product_ids[sale_order_line.product_id.id]['amount_discount'] += sale_order_line.price_subtotal*sale_order_line.discount/100
+
+                    else:
+                        product_ids[sale_order_line.product_id.id] = {
+                            'product_id': sale_order_line.product_id.id,
+                            'sum_sale_chanel': sale_order_line.product_uom_qty if sale_order.team_id.id == sale else 0,
+                            'sum_fp_chanel': sale_order_line.product_uom_qty if sale_order.team_id.id == food_panda else 0,
+                            'sum_grab_chanel': sale_order_line.product_uom_qty if sale_order.team_id.id == grab else 0,
+                            'amount_sale_cod': sale_order_line.price_subtotal if sale_order.team_id.id == sale and sale_order.payment_method == 'cod' else 0,
+                            'amount_sale_ol': sale_order_line.price_subtotal if sale_order.team_id.id == sale and sale_order.payment_method == 'online_payment' else 0,
+                            'amount_fp_cod': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'cod' else 0,
+                            'amount_fp_online': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'online_payment' else 0,
+                            'amount_grab': sale_order_line.price_subtotal if sale_order.team_id.id == grab else 0,
+                        }
+                # handle amount discount
+            #handle damaged
+            pickings = sale_order.picking_ids
+            for picking in pickings:
+                scrap = self.env['stock.scrap'].search([('picking_id', '=', picking.id)])
+                for e in scrap:
+                    product_ids[e.product_id.id]['damaged'] += e.scrap_qty
+
+
+
         for e in product_ids:
             values.append([0, 0, product_ids[e]])
         res = self.env['sale.hnk.report'].create({
