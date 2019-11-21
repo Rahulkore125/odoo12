@@ -285,7 +285,7 @@ class MagentoBackend(models.Model):
             })
 
     def pull_magento_backend(self, url, access_token, backend_id):
-        try:
+        # try:
             if 'https' in url:
                 client = Client(url, access_token, True)
             else:
@@ -322,7 +322,7 @@ class MagentoBackend(models.Model):
             for store_group in store_groups:
                 self.env.cr.execute("""INSERT INTO magento_store (name, code, root_category_id, website_id, backend_id, external_id)
                                        VALUES (%s, %s, %s, %s, %s, %s ) ON CONFLICT (backend_id, external_id) DO UPDATE SET (name, code, root_category_id, website_id) = (EXCLUDED.name, EXCLUDED.code, EXCLUDED.root_category_id, EXCLUDED.website_id)""",
-                                    (store_group['name'], store_group['code'],
+                                    (store_group['name'], store_group['code'] if 'code' in store_group else '',
                                      store_group['root_category_id'], website_odoo_id[
                                          website_magento_id.index(store_group['website_id'])] if check_len_arr else -1,
                                      backend_id, store_group['id']))
@@ -331,14 +331,14 @@ class MagentoBackend(models.Model):
             for store_view in store_views:
                 self.env.cr.execute("""INSERT INTO magento_storeview (name,code,store_id,website_id,is_active,backend_id, external_id)
                                                        VALUES (%s, %s, %s, %s, %s, %s, %s ) ON CONFLICT (backend_id, external_id) DO UPDATE SET (name, code, store_id, website_id, is_active) =(EXCLUDED.name, EXCLUDED.code, EXCLUDED.store_id, EXCLUDED.website_id, EXCLUDED.is_active)  """,
-                                    (store_view['name'], store_view['code'],
+                                    (store_view['name'], store_view['code'] if 'code' in store_view else '',
                                      client.adapter_magento_id('magento_store', backend_id,
                                                                store_view['store_group_id'], self),
                                      website_odoo_id[
                                          website_magento_id.index(store_view['website_id'])] if check_len_arr else -1,
-                                     store_view['is_active'], backend_id, store_view['id']))
-        except Exception as e:
-            raise UserError(_('Not pull data from magento - magento.backend %s') % tools.ustr(e))
+                                     store_view['is_active'] if 'is_active' in store_view else 1, backend_id, store_view['id']))
+        # except Exception as e:
+        #     raise UserError(_('Not pull data from magento - magento.backend %s') % tools.ustr(e))
 
     def fetch_customers(self):
         if not self.auto_fetching:
@@ -392,7 +392,7 @@ class MagentoBackend(models.Model):
 
                 for page in range(1, total_page):
                     customers = cus.list(page_size, page + 1)
-                    cus.insert(customers['items'], backend_id, url, token)
+                    cus.insert(customers['items'], backend_id, url, token, self)
             return {
                 'type': 'ir.actions.act_window',
                 'view_type': 'form',

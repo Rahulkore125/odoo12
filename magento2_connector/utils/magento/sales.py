@@ -115,6 +115,7 @@ class Order(Client):
             # magento
             base_currency_code = order['order_currency_code']
             currency_id = context.env.ref('base.' + str(base_currency_code))
+            currency = currency_id.id
             product_price_list_ids = currency_id.product_price_list_ids
             if not product_price_list_ids:
                 context.env.cr.execute("""INSERT INTO product_pricelist (name,active,currency_id,backend_id) VALUES (%s, %s, %s, %s) 
@@ -151,7 +152,6 @@ class Order(Client):
                 shipment_method = order['extension_attributes']['shipping_assignments'][0]['shipping']['method']
             else:
                 shipment_method = None
-
             # magento_sale_orders.append((store_id, backend_id, order_id, shipment_amount, shipment_method, state))
             magento_sale_orders.append(
                 (store_id, backend_id, order_id, shipment_amount, shipment_method, state, status))
@@ -294,6 +294,7 @@ class Order(Client):
                                 'has_delivery': True if shipment_method else '',
                                 'carrier_id': carrier_id if carrier_id is not None else False,
                                 'is_magento_sale_order': True,
+                                'currency_id': currency,
                                 # 'note': ("Apply discount code:" + str(coupon_code)) if coupon_code != '' else None
                                 })
             # trường hợp address được add trên front end magento, sẽ được cập nhật khi có sale order ship tới địa chỉ này

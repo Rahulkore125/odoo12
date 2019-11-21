@@ -20,7 +20,7 @@ class Client(object):
             url, params=arguments, verify=self._verify_ssl,
             headers={'Authorization': 'Bearer %s' % self._token,
                      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36'},
-            timeout=10)
+            timeout=1000)
         res.raise_for_status()
         return res.json()
 
