@@ -51,13 +51,22 @@ class Customer(Client):
                                                context)
             res_partner = context.env['magento.res.partner'].search(
                 [('backend_id', '=', backend_id), ('external_id', '=', magento_customer_id)], limit=1)
-            rec_email_existed = context.env['magento.res.partner'].search([('email', '=', email)])
+            rec_email_existed = context.env['magento.res.partner'].search(
+                [('email', '=', email), ('active', '=', True)])
+            rec_email_existed = sorted(rec_email_existed, key=lambda rec: -rec['id'])
             # update
             if rec_email_existed:
-                old_partner_parent = context.env['res.partner'].search([('id', '=', rec_email_existed.odoo_id.id)])
-                old_partner_child = context.env['res.partner'].search(
-                    [('id', '!=', rec_email_existed.odoo_id.id), ('email', '=', email)])
-                rec_email_existed.update({
+                # trong truong hop rec_email_existed >  2 record : thi lay cai cuoi cung va update no, xoa tat ca cac cai con lai
+                old_partner_parent = context.env['res.partner'].search(
+                    [('id', '=', rec_email_existed[0].odoo_id.id), ('active', '=', True)])
+                for record in rec_email_existed:
+                    old_partner_parent_orther = context.env['res.partner'].search(
+                        [('id', '=', record.odoo_id.id), ('active', '=', True)])
+                    if old_partner_parent_orther.id != old_partner_parent.id:
+                        old_partner_parent_orther.update({
+                            'active': False
+                        })
+                rec_email_existed[0].update({
                     'external_id': magento_customer_id,
                     'website_id': website_id,
                     'storeview_id': storeview_id,
@@ -66,8 +75,20 @@ class Customer(Client):
                     'email': email,
                     'group_id': group_id
                 })
-                for partner in old_partner_child:
-                    partner.unlink()
+                # xoa tat ca cac partner co email bi trung con lai
+                for email_existed in rec_email_existed:
+                    old_partner_child = context.env['res.partner'].search(
+                        [('id', '!=', email_existed.odoo_id.id), ('email', '=', email), ('active', '=', True)])
+                    for partner in old_partner_child:
+                        # cap nhat sale order co lien quan, dinh vs partner o tren
+                        # sale_orders = context.env['magento.sale.order'].search([('partner_id', '=', partner.id)])
+                        # for order in sale_orders:
+                        #     order.update({
+                        #         'partner_id': old_partner_parent.id
+                        #     })
+                        partner.update({
+                            'active': False
+                        })
                 # update new address if new customer have address
                 if customer['addresses'] and len(customer['addresses']) > 0:
                     # first address

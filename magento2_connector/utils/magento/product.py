@@ -70,10 +70,10 @@ class Product(Client):
                 weight = product['weight']
             else:
                 weight = 0
-            #todo
             if weight > 0:
                 product_type_magento = 'product'
             else:
+                #todo
                 product_type_magento = 'product'
             categories = []
             # add category
@@ -95,7 +95,10 @@ class Product(Client):
             sequence = '1'
             sale_ok = True
             purchase_ok = True
-            configurable_product_options = product['extension_attributes']['configurable_product_options']
+            if 'configurable_product_options' in product['extension_attributes']:
+                configurable_product_options = product['extension_attributes']['configurable_product_options']
+            else:
+                configurable_product_options = False
 
             # magento product product
             # update
@@ -180,6 +183,7 @@ class Product(Client):
                         configurable_product_links = extension_attributes['configurable_product_links']
                         for product_link in configurable_product_links:
                             product_children.append(product_link)
+
                     magento_product_product.append((backend_id, external_product_id))
         # if odoo_product_template and len(odoo_product_template) > 0:
         #     product_template_ids = context.env['product.template'].create(odoo_product_template)
@@ -188,6 +192,8 @@ class Product(Client):
             for product_tmpl_id in product_template_ids:
                 for product_product_id in product_tmpl_id.product_variant_ids:
                     odoo_product_product_ids.append(product_product_id.id)
+            print(odoo_product_template)
+            print(odoo_product_product_ids)
             if len(odoo_product_product_ids) == len(product_children):
                 context.env.cr.execute(
                     """INSERT INTO magento_product_product(odoo_id, external_id, backend_id) VALUES {values}""".
