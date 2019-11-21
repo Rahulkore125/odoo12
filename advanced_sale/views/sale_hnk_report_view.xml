@@ -2,7 +2,7 @@
 <odoo>
     <data>
         <record id="sale_hnk_report_action" model="ir.actions.act_window">
-            <field name="name">Sale HNK Report Action</field>
+            <field name="name">Sale &amp; Stock Report</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">sale.hnk.report</field>
             <field name="view_mode">form</field>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="stock_picking_form_inherit" model="ir.ui.view">
+            <field name="name">Stock Picking Form Inherit</field>
+            <field name="model">stock.picking</field>
+            <field name="priority">17</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//button[@name='%(stock.action_report_delivery)d']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_toggle_is_locked']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//page[@name='extra']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_send_confirmation_email']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='scheduled_date']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//field[@name='state']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+            </field>
+        </record>
+
+        <record model="ir.actions.act_window" id="stock.action_stock_scrap">
+            <field name="name">Scrap Orders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">stock.scrap</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form,kanban</field>
+            <field name="context">{'create': False}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+                Scrap products
+              </p><p>
+                Scrapping a product will remove it from your stock. The product will
+                end up in a scrap location that can be used for reporting purpose.
+              </p>
+            </field>
+        </record>
+    </data>
+</odoo>

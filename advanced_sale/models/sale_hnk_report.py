@@ -148,7 +148,8 @@ class SaleHnkReport(models.Model):
             'name': 'Sale & Stock Report',
             'res_model': 'sale.hnk.report.line',
             'domain': [('sale_report_id', '=', res.id)],
-            'context': {'search_default_group_category_id': 1}
+            'context': {'search_default_group_category_id': 1},
+            'target': 'main'
         }
         return action
 

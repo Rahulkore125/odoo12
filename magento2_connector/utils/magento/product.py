@@ -70,10 +70,11 @@ class Product(Client):
                 weight = product['weight']
             else:
                 weight = 0
+            #todo
             if weight > 0:
-                product_type_magento = 'consu'
+                product_type_magento = 'product'
             else:
-                product_type_magento = 'service'
+                product_type_magento = 'product'
             categories = []
             # add category
             categories = []
@@ -245,10 +246,11 @@ class Product(Client):
                 weight = product['weight']
             else:
                 weight = 0
+            #todo
             if weight > 0:
-                magento_product_type = 'consu'
+                magento_product_type = 'product'
             else:
-                magento_product_type = 'service'
+                magento_product_type = 'product'
             product_type_magento = 'magento_' + str(product['type_id'])
             # update
             sku_existed = context.env['product.template'].search([('default_code', '=', sku)])

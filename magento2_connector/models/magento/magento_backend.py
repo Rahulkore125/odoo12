@@ -452,39 +452,39 @@ class MagentoBackend(models.Model):
             if page_size > 0:
                 current_page = 0
                 if self:
-                    pull_history_configurable_product = self.env['magento.pull.history'].search(
-                        [('backend_id', '=', backend_id), ('name', '=', 'configurable_product')])
-                    # Configurbale Product
-                    # try:
-                    if pull_history_configurable_product:
-                        # second pull
-                        sync_date = pull_history_configurable_product.sync_date
-                        products = pro.list_gt_updated_product(sync_date, 'eq')
-                        if len(products['items']) > 0:
-                            pull_history_configurable_product.write({
-                                'sync_date': datetime.datetime.today()
-                            })
-
-                    else:
-                        # first pull
-                        self.env['magento.pull.history'].create({
-                            'name': 'configurable_product',
-                            'sync_date': datetime.datetime.today(),
-                            'backend_id': backend_id
-                        })
-                        products = pro.list_product(page_size, current_page, 'configurable', 'eq')
-
-                    total_count = products['total_count']
-                    pro.insert_configurable_product(products['items'], backend_id, url, token, self)
-
-                    total_page = get_current_page(total_count, page_size)
-                    if total_page > 0:
-                        for page in range(1, total_page):
-                            products = pro.list_product(page_size, page + 1, 'configurable', 'eq')
-                            pro.insert_configurable_product(products['items'], backend_id, url, token)
-                    # except Exception as e:
-                    #     print(e)
-                    #     raise UserError(_('fetch product configurable %s or fetch product attribute') % tools.ustr(e))
+                    # pull_history_configurable_product = self.env['magento.pull.history'].search(
+                    #     [('backend_id', '=', backend_id), ('name', '=', 'configurable_product')])
+                    # # Configurbale Product
+                    # # try:
+                    # if pull_history_configurable_product:
+                    #     # second pull
+                    #     sync_date = pull_history_configurable_product.sync_date
+                    #     products = pro.list_gt_updated_product(sync_date, 'eq')
+                    #     if len(products['items']) > 0:
+                    #         pull_history_configurable_product.write({
+                    #             'sync_date': datetime.datetime.today()
+                    #         })
+                    #
+                    # else:
+                    #     # first pull
+                    #     self.env['magento.pull.history'].create({
+                    #         'name': 'configurable_product',
+                    #         'sync_date': datetime.datetime.today(),
+                    #         'backend_id': backend_id
+                    #     })
+                    #     products = pro.list_product(page_size, current_page, 'configurable', 'eq')
+                    #
+                    # total_count = products['total_count']
+                    # pro.insert_configurable_product(products['items'], backend_id, url, token, self)
+                    #
+                    # total_page = get_current_page(total_count, page_size)
+                    # if total_page > 0:
+                    #     for page in range(1, total_page):
+                    #         products = pro.list_product(page_size, page + 1, 'configurable', 'eq')
+                    #         pro.insert_configurable_product(products['items'], backend_id, url, token)
+                    # # except Exception as e:
+                    # #     print(e)
+                    # #     raise UserError(_('fetch product configurable %s or fetch product attribute') % tools.ustr(e))
 
                     # Normal Product
                     pull_history_normal_product = self.env['magento.pull.history'].search(
