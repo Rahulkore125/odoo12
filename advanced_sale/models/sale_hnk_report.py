@@ -123,7 +123,7 @@ class SaleHnkReport(models.Model):
                             'amount_fp_online': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'online_payment' else 0,
                             'amount_grab': sale_order_line.price_subtotal if sale_order.team_id.id == grab else 0,
                         }
-                # handle amount discount
+
             #handle damaged
             pickings = sale_order.picking_ids
             for picking in pickings:

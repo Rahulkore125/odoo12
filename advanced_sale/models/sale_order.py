@@ -3,12 +3,6 @@ from datetime import date
 from odoo import models, fields, api
 
 
-class StockPicking(models.Model):
-    _inherit = 'stock.picking'
-
-    date_done_delivery = fields.Date()
-
-
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
@@ -21,7 +15,6 @@ class SaleOrder(models.Model):
 
     @api.model
     def create(self, vals_list):
-        print(vals_list)
         res = super(SaleOrder, self).create(vals_list)
         return res
 
