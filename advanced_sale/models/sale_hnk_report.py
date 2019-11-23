@@ -131,7 +131,7 @@ class SaleHnkReport(models.Model):
                 for e in scrap:
                     product_ids[e.product_id.id]['damaged'] += e.scrap_qty
 
-
+        self.env['sale.hnk.report.line'].search([]).unlink()
 
         for e in product_ids:
             values.append([0, 0, product_ids[e]])
@@ -140,6 +140,7 @@ class SaleHnkReport(models.Model):
             'report_line_ids': values
         })
 
+        self.env['sale.hnk.report'].search([('id', '!=', res.id)]).unlink()
         tree_view_id = self.env.ref('advanced_sale.sale_hnk_report_line_tree').id
         action = {
             'type': 'ir.actions.act_window',
