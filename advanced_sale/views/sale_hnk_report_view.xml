@@ -50,6 +50,7 @@
                     <field name="open_stock"/>
                     <field name="open_stock_units"/>
                     <field name="damaged"/>
+                    <field name="returned"/>
                     <field name="sum_sale_chanel"/>
                     <field name="sum_fp_chanel"/>
                     <field name="sum_grab_chanel"/>

@@ -56,6 +56,7 @@ class SaleHnkReport(models.Model):
                 product_ids[e]['open_stock_units'] = product_ids[e]['open_stock'] * precision
                 product_ids[e]['close_stock_units'] = product_ids[e]['close_stock'] * precision
                 product_ids[e]['damaged'] = 0
+                product_ids[e]['returned'] = 0
                 product_ids[e]['amount_discount'] = 0
             else:
                 product_ids[e] = {
@@ -74,6 +75,7 @@ class SaleHnkReport(models.Model):
                     'open_stock_units': qty_previous_day[e]['qty_available'] * precision,
                     'close_stock_units': qty_today[e]['qty_available'] * precision,
                     'damaged': 0,
+                    'returned': 0,
                     'amount_discount': 0
                 }
 
@@ -124,12 +126,17 @@ class SaleHnkReport(models.Model):
                             'amount_grab': sale_order_line.price_subtotal if sale_order.team_id.id == grab else 0,
                         }
 
-            #handle damaged
+            #handle damaged, returned
             pickings = sale_order.picking_ids
             for picking in pickings:
                 scrap = self.env['stock.scrap'].search([('picking_id', '=', picking.id)])
                 for e in scrap:
                     product_ids[e.product_id.id]['damaged'] += e.scrap_qty
+                stock_moves = picking.move_ids_without_package
+                if picking.is_return_picking:
+                    for f in stock_moves:
+                        if not f.scrapped:
+                            product_ids[f.product_id.id]['returned'] += f.product_uom_qty
 
         self.env['sale.hnk.report.line'].search([]).unlink()
 
@@ -162,7 +169,9 @@ class SaleHnkReportLine(models.Model):
     product_category_id = fields.Many2one('product.category', string="Product Category")
     open_stock = fields.Float("Opening Stock")
     open_stock_units = fields.Float(string="UNITS btls/cans (Opening)")
-    damaged = fields.Float(string="Damaged")
+
+    damaged = fields.Float(string="Damaged(UNITS btls/cans)")
+    returned = fields.Float(string="Return")
 
     sum_sale_chanel = fields.Float(string="Sold")
     sum_fp_chanel = fields.Float(string="Sold FP")

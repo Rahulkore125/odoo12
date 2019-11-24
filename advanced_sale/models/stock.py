@@ -4,6 +4,7 @@ class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
     date_done_delivery = fields.Date()
+    is_return_picking = fields.Boolean(default=False)
 
 
 class StockReturnPicking(models.TransientModel):
@@ -11,7 +12,7 @@ class StockReturnPicking(models.TransientModel):
 
     def create_returns(self):
         for wizard in self:
-            new_picking_id, pick_type_id = wizard._create_returns()
+            new_picking_id, pick_type_id = super(StockReturnPicking, wizard)._create_returns()
             # Override the context to disable all the potential filters that could have been set previously
         ctx = dict(self.env.context)
 
@@ -29,6 +30,7 @@ class StockReturnPicking(models.TransientModel):
         for move_line in picking.move_lines:
             move_line.quantity_done = move_line.product_uom_qty
         picking.action_done()
+        picking.is_return_picking = True
         action = self.env['sale.order'].browse(picking.sale_id.id).action_view_delivery()
 
         return action
