@@ -22,10 +22,12 @@ class SaleOrder(models.Model):
         for rec in self:
             rec.number_of_sale_order_line = len(rec.order_line)
 
-    @api.model
-    def create(self, vals_list):
-        res = super(SaleOrder, self).create(vals_list)
-        return res
+    # @api.model
+    # def create(self, vals_list):
+    #     if 'pricelist_id' not in vals_list:
+    #         vals_list['pricelist_id'] = self.env.ref('product.pricelist').search([], limit=1).id
+    #     res = super(SaleOrder, self).create(vals_list)
+    #     return res
 
     @api.multi
     @api.depends('order_line', 'estimate_discount_total')
