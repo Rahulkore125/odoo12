@@ -12,7 +12,7 @@ class SaleOrder(models.Model):
     )
 
     is_magento_sale_order = fields.Boolean("is_magento_sale_order")
-    currency_id = fields.Many2one("res.currency", related='pricelist_id.currency_id', string="Currency", readonly=True, store=True)
+    # currency_id = fields.Many2one("res.currency", related='pricelist_id.currency_id', string="Currency", readonly=True, store=True)
 
     @api.multi
     def action_view_invoice(self):
