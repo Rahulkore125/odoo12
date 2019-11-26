@@ -12,6 +12,10 @@ class SaleOrder(models.Model):
         invoice_id = self.action_invoice_create(grouped=False, final=False)
         for e in invoice_id:
             invoice = self.env['account.invoice'].browse(e)
+            invoice.update({
+                'original_invoice': True,
+                'order_id': self.id
+            })
             invoice.action_invoice_open()
             if self.payment_method == 'cod':
                 journal_id = self.env['account.journal'].search([('code', '=', 'CSH1')]).id
@@ -30,3 +34,4 @@ class SaleOrder(models.Model):
             })
             payment.action_validate_invoice_payment()
         return result
+
