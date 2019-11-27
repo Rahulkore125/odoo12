@@ -15,6 +15,7 @@ class SaleOrder(models.Model):
                                       required=False, default="cod")
     date_confirm_order = fields.Date()
     number_of_sale_order_line = fields.Integer(compute='_compute_number_order_line', store=True)
+    shipper = fields.Many2one('shipper', string="Shipper")
 
     @api.multi
     @api.depends('order_line')
