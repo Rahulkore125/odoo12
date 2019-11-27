@@ -26,6 +26,8 @@
                 <xpath expr="//tree/field[@name='discount']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
+                <xpath expr="//control/create[1]" position="replace">
+                </xpath>
                 <xpath expr="//control" position="replace">
                 </xpath>
                 <xpath expr="//button[@name='action_quotation_send' and @states='draft']" position="replace">
