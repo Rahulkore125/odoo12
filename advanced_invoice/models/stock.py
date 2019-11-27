@@ -14,14 +14,33 @@ class StockReturnPicking(models.TransientModel):
         })
 
         context = dict(self._context or {})
+
         order = self.env['stock.picking'].browse(context.get('active_ids')).sale_id
         action = super(StockReturnPicking, self).create_returns()
         invoice = self.env['account.invoice'].search([('original_invoice', '=', True), (
             'order_id', '=', order.id)])
+        invoice_lines = invoice.invoice_line_ids
+
+        invoice_lines_copy = {}
+        for e in invoice_lines:
+            invoice_lines_copy[e.product_id.id] = e.copy()
+            invoice_lines_copy[e.product_id.id].write({'invoice_id': False})
+        invoice_lines_update = []
+        for e in self.product_return_moves:
+            if e.product_id.id in invoice_lines_copy:
+                invoice_lines_copy[e.product_id.id].write({
+                    'quantity': e.quantity
+                })
+                invoice_lines_update.append(invoice_lines_copy[e.product_id.id].id)
+
         refund.with_context({'active_ids': [invoice.id]}).compute_refund(mode='refund')
         credit_note = self.env['account.invoice'].search([('refund_invoice_id', '=', invoice.id)])
         for e in credit_note:
             if e.state != 'paid':
+                # e.invoice_line_ids = invoice_lines
+                e.write({
+                    'invoice_line_ids': [(6, 0, invoice_lines_update)]
+                })
                 e.action_invoice_open()
                 if order.payment_method == 'cod':
                     journal_id = self.env['account.journal'].search([('code', '=', 'CSH1')]).id
