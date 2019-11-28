@@ -16,6 +16,14 @@ class SaleOrder(models.Model):
     date_confirm_order = fields.Date()
     number_of_sale_order_line = fields.Integer(compute='_compute_number_order_line', store=True)
     shipper = fields.Many2one('shipper', string="Shipper")
+    has_a_delivery = fields.Boolean(
+        compute='_compute_has_a_delivery', string='Has delivery',
+        help="Has an order line set for delivery", store=True)
+
+    @api.depends('order_line.is_delivery')
+    def _compute_has_a_delivery(self):
+        for order in self:
+            order.has_a_delivery = any(order.order_line.filtered('is_delivery'))
 
     @api.multi
     @api.depends('order_line')
@@ -112,7 +120,7 @@ class SaleOrderLine(models.Model):
                                             product=line.product_id, partner=line.order_id.partner_shipping_id)
 
             # if not line.order_id.has_delivery:
-            if False:
+            if not line.order_id.has_a_delivery:
                 line.update({
                     'price_tax': sum(t.get('amount', 0.0) for t in taxes.get('taxes', [])),
                     'price_total': taxes['total_included'],
@@ -137,6 +145,7 @@ class SaleOrderLine(models.Model):
                         'price_total': taxes['total_included'],
                         'price_subtotal': line.price_unit * line.qty_delivered
                     })
+
 
 class SaleReport(models.Model):
     _inherit = 'sale.report'
