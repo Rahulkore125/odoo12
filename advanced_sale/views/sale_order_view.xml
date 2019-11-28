@@ -5,8 +5,8 @@
         <record id="sale_order_form_inherit" model="ir.ui.view">
             <field name="name">Sale Order Form Inherit</field>
             <field name="model">sale.order</field>
-            <field name="priority" eval="20"/>
-            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="priority" eval="30"/>
+            <field name="inherit_id" ref="delivery.view_order_form_with_carrier"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='validity_date']" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -21,7 +21,7 @@
                     <field name="computed_discount_total"/>
                 </xpath>
                 <xpath expr="//field[@name='amount_tax']" position="attributes">
-                     <attribute name="invisible">1</attribute>
+                    <attribute name="invisible">1</attribute>
                 </xpath>
                 <xpath expr="//tree/field[@name='discount']" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -54,10 +54,13 @@
                             attrs="{'invisible': [('state', 'not in', ['draft'])]}"/>
                 </xpath>
                 <xpath expr="//button[@name='%(sale_coupon.sale_coupon_apply_code_action)d']" position="replace">
-                     <button name="%(sale_coupon.sale_coupon_apply_code_action)d" string="Apply Coupon" type="action" groups="base.group_system" states="draft"/>
+                    <button name="%(sale_coupon.sale_coupon_apply_code_action)d" string="Apply Coupon" type="action"
+                            groups="base.group_system" states="draft"/>
                 </xpath>
-                 <xpath expr="//button[@name='recompute_coupon_lines']" position="replace">
-                     <button name="recompute_coupon_lines" string="Update Promotions" type="object" attrs="{'invisible': [('state', 'in', ['sale', 'done', 'cancel'])]}"  groups="base.group_system" />
+                <xpath expr="//button[@name='recompute_coupon_lines']" position="replace">
+                    <button name="recompute_coupon_lines" string="Update Promotions" type="object"
+                            attrs="{'invisible': [('state', 'in', ['sale', 'done', 'cancel'])]}"
+                            groups="base.group_system"/>
                 </xpath>
                 <xpath expr="//field[@name='fiscal_position_id']" position="attributes">
                     <attribute name="invisible">1</attribute>
@@ -77,8 +80,11 @@
                 <xpath expr="//field[@name='pricelist_id']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
-                <xpath expr="//field[@name='carrier_id']" position="after">
-                    <field name="shipper"/>
+                <xpath expr="//div[@name='carrier_selection']" position="after">
+                    <label for="shipper"/>
+                    <div name="shipper_selection">
+                        <field name="shipper"/>
+                    </div>
                 </xpath>
             </field>
         </record>
