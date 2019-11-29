@@ -35,18 +35,37 @@ class Order(Client):
                                                                                                     'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
 
     def importer_sale(self, orders, backend_id, backend_name, prefix_order, context=None):
+        if orders:
+            print(len(orders))
         sale_orders = []
         magento_sale_orders = []
         shipment_orders_lines = []
         sale_orders_lines_json = []
         default_consumer_product_id = 1
         default_service_product_id = 1
+        partner_id = context.env.ref('magento2_connector.create_customer_guest').id
+        default_magento_partner_odoo_id = -1
+        default_magento_partner_odoo = context.env['magento.res.partner'].sudo().search(
+            [('backend_id', '=', backend_id), ('odoo_id', '=', partner_id)], limit=1)
+        if not default_magento_partner_odoo:
+            website_list = context.env['magento.website'].sudo().search([('backend_id', '=', backend_id)])
+            for website_item in website_list:
+                website_store_view = context.env['magento.storeview'].sudo().search([('backend_id', '=', backend_id), ('website_id', '=', website_item.id)])
+                for website_store_view_item in website_store_view:
+                    new_magento_res_partner = context.env['magento.res.partner'].sudo().create({
+                        'backend_id': backend_id,
+                        'odoo_id': partner_id,
+                        'website_id': website_item.id,
+                        'storeview_id': website_store_view_item.id
+                    })
 
+                    default_magento_partner_odoo_id = new_magento_res_partner.id
+        else:
+            default_magento_partner_odoo_id = default_magento_partner_odoo.id
         for order in orders:
             # odoo
+            partner_id = context.env.ref('magento2_connector.create_customer_guest').id
             if order['customer_group_id'] == 0:
-                partner_id = context.env.ref('magento2_connector.create_customer_guest').id
-
                 customers = []
                 # billing_address
                 billing_address = order['billing_address']
@@ -92,12 +111,13 @@ class Order(Client):
                     partner_shipping_id = address_ids[1][0]
             else:
                 # init guest partner
-                partner_id = context.env.ref('magento2_connector.create_customer_guest').id
                 if 'customer_id' in order:
                     context.env.cr.execute(
                         "SELECT odoo_id FROM magento_res_partner WHERE backend_id=%s AND external_id=%s LIMIT 1" % (
                             backend_id, order['customer_id']))
-                    partner_id = context.env.cr.fetchone()[0]
+                    current_partner = context.env.cr.fetchone()
+                    if current_partner and len(current_partner) > 0:
+                        partner_id = current_partner[0]
                 # #
                 # partner_invoice_id = order['billing_address']['customer_address_id']
                 # partner_shipping_id = order['extension_attributes']['shipping_assignments'][0]['shipping']['address']['customer_address_id']
@@ -331,6 +351,8 @@ class Order(Client):
                             """SELECT id FROM magento_res_partner WHERE external_id = %s and backend_id =%s""",
                             (current_customer_id, backend_id))
                         magento_partner_odoo_id = context.env.cr.fetchone()
+                        if not magento_partner_odoo_id:
+                            magento_partner_odoo_id = default_magento_partner_odoo_id
                         context.env.cr.execute(
                             """INSERT INTO magento_address (odoo_id,magento_partner_id,backend_id) VALUES (%s,%s,%s)""",
                             (current_partner_id, magento_partner_odoo_id, backend_id))
@@ -374,6 +396,8 @@ class Order(Client):
                                 """SELECT id FROM magento_res_partner WHERE external_id = %s and backend_id =%s""",
                                 (current_customer_id, backend_id))
                             magento_partner_odoo_id = context.env.cr.fetchone()
+                            if not magento_partner_odoo_id:
+                                magento_partner_odoo_id = default_magento_partner_odoo_id
                             context.env.cr.execute(
                                 """INSERT INTO magento_address (odoo_id,magento_partner_id,backend_id) VALUES (%s,%s,%s)""",
                                 (current_partner_id, magento_partner_odoo_id, backend_id))
