@@ -2,7 +2,19 @@
 <odoo>
     <data noupdate="1">
         <record id="sale" model="crm.team">
-            <field name="name">Sale</field>
+            <field name="name">Drinkies</field>
+        </record>
+        <record id="shopee" model="crm.team">
+            <field name="name">Shopee</field>
+        </record>
+         <record id="pos" model="crm.team">
+            <field name="name">POS</field>
+        </record>
+         <record id="lazmall" model="crm.team">
+            <field name="name">Lazmall</field>
+        </record>
+         <record id="lalafood" model="crm.team">
+            <field name="name">Lalafood</field>
         </record>
         <record id="food_panda" model="crm.team">
             <field name="name">Food panda</field>

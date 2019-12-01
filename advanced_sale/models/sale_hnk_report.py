@@ -23,6 +23,10 @@ class SaleHnkReport(models.Model):
         sale = self.env.ref('advanced_sale.sale').id
         food_panda = self.env.ref('advanced_sale.food_panda').id
         grab = self.env.ref('advanced_sale.grab').id
+        shopee = self.env.ref('advanced_sale.shopee').id
+        pos = self.env.ref('advanced_sale.pos').id
+        lazmall = self.env.ref('advanced_sale.lazmall').id
+        lalafood = self.env.ref('advanced_sale.lalafood').id
 
         #handle stock
         today_date = fields.Datetime.to_datetime(self.datetime_report)
@@ -65,11 +69,24 @@ class SaleHnkReport(models.Model):
                     'sum_sale_chanel': 0,
                     'sum_fp_chanel': 0,
                     'sum_grab_chanel': 0,
+                    'sum_shopee_chanel': 0,
+                    'sum_lazmall_chanel': 0,
+                    'sum_pos_chanel': 0,
+                    'sum_lalafood_chanel': 0,
                     'amount_sale_cod': 0,
                     'amount_sale_ol': 0,
                     'amount_fp_cod': 0,
-                    'amount_fp_online': 0,
-                    'amount_grab': 0,
+                    'amount_fp_ol': 0,
+                    'amount_shopee_cod': 0,
+                    'amount_shopee_ol': 0,
+                    'amount_pos_cod': 0,
+                    'amount_pos_ol': 0,
+                    'amount_lazmall_cod': 0,
+                    'amount_lazmall_ol': 0,
+                    'amount_lalafood_cod': 0,
+                    'amount_lalafood_ol': 0,
+                    'amount_grab_cod': 0,
+                    'amount_grab_ol': 0,
                     'open_stock': qty_previous_day[e]['qty_available'],
                     'close_stock': qty_today[e]['qty_available'],
                     'open_stock_units': qty_previous_day[e]['qty_available'] * precision,
@@ -104,12 +121,52 @@ class SaleHnkReport(models.Model):
                                     'amount_fp_cod'] += sale_order_line.price_subtotal
                             elif sale_order.payment_method == 'online_payment':
                                 product_ids[sale_order_line.product_id.id][
-                                    'amount_fp_online'] += sale_order_line.price_subtotal
+                                    'amount_fp_ol'] += sale_order_line.price_subtotal
                         elif sale_order.team_id.id == grab:
                             product_ids[sale_order_line.product_id.id][
                                 'sum_grab_chanel'] += sale_order_line.product_uom_qty
+                            if sale_order.payment_method == 'cod':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_grab_cod'] += sale_order_line.price_subtotal
+                            elif sale_order.payment_method == 'online_payment':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_grab_ol'] += sale_order_line.price_subtotal
+                        elif sale_order.team_id.id == shopee:
                             product_ids[sale_order_line.product_id.id][
-                                'amount_grab'] += sale_order_line.price_subtotal
+                                'sum_shopee_chanel'] += sale_order_line.product_uom_qty
+                            if sale_order.payment_method == 'cod':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_shopee_cod'] += sale_order_line.price_subtotal
+                            elif sale_order.payment_method == 'online_payment':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_shopee_ol'] += sale_order_line.price_subtotal
+                        elif sale_order.team_id.id == pos:
+                            product_ids[sale_order_line.product_id.id][
+                                'sum_pos_chanel'] += sale_order_line.product_uom_qty
+                            if sale_order.payment_method == 'cod':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_pos_cod'] += sale_order_line.price_subtotal
+                            elif sale_order.payment_method == 'online_payment':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_pos_ol'] += sale_order_line.price_subtotal
+                        elif sale_order.team_id.id == lazmall:
+                            product_ids[sale_order_line.product_id.id][
+                                'sum_lazmall_chanel'] += sale_order_line.product_uom_qty
+                            if sale_order.payment_method == 'cod':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_lazmall_cod'] += sale_order_line.price_subtotal
+                            elif sale_order.payment_method == 'online_payment':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_lazmall_ol'] += sale_order_line.price_subtotal
+                        elif sale_order.team_id.id == lalafood:
+                            product_ids[sale_order_line.product_id.id][
+                                'sum_lalafood_chanel'] += sale_order_line.product_uom_qty
+                            if sale_order.payment_method == 'cod':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_lalafood_cod'] += sale_order_line.price_subtotal
+                            elif sale_order.payment_method == 'online_payment':
+                                product_ids[sale_order_line.product_id.id][
+                                    'amount_lalafood_ol'] += sale_order_line.price_subtotal
                         #handle amount discount
                         product_ids[sale_order_line.product_id.id]['amount_discount'] += sale_order_line.price_subtotal*sale_order_line.discount/100
 
@@ -122,8 +179,16 @@ class SaleHnkReport(models.Model):
                             'amount_sale_cod': sale_order_line.price_subtotal if sale_order.team_id.id == sale and sale_order.payment_method == 'cod' else 0,
                             'amount_sale_ol': sale_order_line.price_subtotal if sale_order.team_id.id == sale and sale_order.payment_method == 'online_payment' else 0,
                             'amount_fp_cod': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'cod' else 0,
-                            'amount_fp_online': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'online_payment' else 0,
+                            'amount_fp_ol': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'online_payment' else 0,
                             'amount_grab': sale_order_line.price_subtotal if sale_order.team_id.id == grab else 0,
+                            'amount_shopee_cod': sale_order_line.price_subtotal if sale_order.team_id.id == shopee and sale_order.payment_method == 'cod' else 0,
+                            'amount_shopee_ol': sale_order_line.price_subtotal if sale_order.team_id.id == shopee and sale_order.payment_method == 'online_payment' else 0,
+                            'amount_pos_cod': sale_order_line.price_subtotal if sale_order.team_id.id == pos and sale_order.payment_method == 'cod' else 0,
+                            'amount_pos_ol': sale_order_line.price_subtotal if sale_order.team_id.id == pos and sale_order.payment_method == 'online_payment' else 0,
+                            'amount_lazmall_cod': sale_order_line.price_subtotal if sale_order.team_id.id == lazmall and sale_order.payment_method == 'cod' else 0,
+                            'amount_lazmall_ol': sale_order_line.price_subtotal if sale_order.team_id.id == lazmall and sale_order.payment_method == 'online_payment' else 0,
+                            'amount_lalafood_cod': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'cod' else 0,
+                            'amount_lalafood_ol': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'online_payment' else 0,
                         }
 
             #handle damaged, returned
@@ -173,15 +238,35 @@ class SaleHnkReportLine(models.Model):
     damaged = fields.Float(string="Damaged(UNITS btls/cans)")
     returned = fields.Float(string="Return")
 
-    sum_sale_chanel = fields.Float(string="Sold")
+    sum_sale_chanel = fields.Float(string="Sold Drinkies")
     sum_fp_chanel = fields.Float(string="Sold FP")
     sum_grab_chanel = fields.Float(string="Sold Grab")
+    sum_shopee_chanel = fields.Float(string="Sold Shopee")
+    sum_pos_chanel = fields.Float(string="Sold POS")
+    sum_lazmall_chanel = fields.Float(string="Sold Lazmall")
+    sum_lalafood_chanel = fields.Float(string="Sold Lalafood")
 
-    amount_sale_cod = fields.Float(string="Amount Sale COD")
-    amount_sale_ol = fields.Float(string="Amount Sale Online")
+
+    amount_sale_cod = fields.Float(string="Amount Drinkies COD")
+    amount_sale_ol = fields.Float(string="Amount Drinkies Online")
+
     amount_fp_cod = fields.Float(string="Amount FP COD")
-    amount_fp_online = fields.Float(string="Amount FP Online")
-    amount_grab = fields.Float(string="Amount Grab")
+    amount_fp_ol = fields.Float(string="Amount FP Online")
+
+    amount_grab_cod = fields.Float(string="Amount Grab COD")
+    amount_grab_ol = fields.Float(string="Amount Grab Online")
+
+    amount_shopee_cod = fields.Float(string="Amount Shopee COD")
+    amount_shopee_ol = fields.Float(string="Amount Shopee Online")
+
+    amount_pos_cod = fields.Float(string="Amount POS COD")
+    amount_pos_ol = fields.Float(string="Amount POS Online")
+
+    amount_lazmall_cod = fields.Float(string="Amount Lazmall COD")
+    amount_lazmall_ol = fields.Float(string="Amount Lazmall Online")
+
+    amount_lalafood_cod = fields.Float(string="Amount Lalafood COD")
+    amount_lalafood_ol = fields.Float(string="Amount Lalafood Online")
 
     close_stock = fields.Float(string="Closing Stock")
     close_stock_units = fields.Float(string="UNITS btls/cans (Closing)")
