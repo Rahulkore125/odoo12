@@ -19,6 +19,15 @@ class SaleOrder(models.Model):
     has_a_delivery = fields.Boolean(
         compute='_compute_has_a_delivery', string='Has delivery',
         help="Has an order line set for delivery", store=True)
+    order_reference_id = fields.Char(compute='_compute_order_ref_id', store=True, readonly=False)
+
+    @api.multi
+    @api.depends('magento_bind_ids')
+    def _compute_order_ref_id(self):
+        for rec in self:
+            if len(rec.magento_bind_ids) > 0:
+                for e in rec.magento_bind_ids:
+                    rec.order_reference_id = e.odoo_id.name
 
     @api.depends('order_line.is_delivery')
     def _compute_has_a_delivery(self):

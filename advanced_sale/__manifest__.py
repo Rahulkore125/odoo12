@@ -18,7 +18,7 @@
     'version': '1.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale', 'delivery', 'mail', 'stock', 'sales_team', 'uom', 'stock_account'],
+    'depends': ['base', 'sale', 'delivery', 'mail', 'stock', 'sales_team', 'uom', 'stock_account', 'magento2_connector'],
 
     # always loaded
     'data': [
