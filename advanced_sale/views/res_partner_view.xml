@@ -58,19 +58,6 @@
                 </xpath>
             </field>
         </record>
-
-        <record id="view_partner_form_inherit_email" model="ir.ui.view">
-            <field name="name">Partner Form Inherit</field>
-            <field name="model">res.partner</field>
-            <field name="priority" eval="3"/>
-            <field name="inherit_id" ref="mail.res_partner_view_form_inherit_mail"/>
-            <field name="arch" type="xml">
-                <xpath expr="//field[@name='email']" position="attributes">
-                    <attribute name="required">1</attribute>
-                </xpath>
-            </field>
-        </record>
-
     </data>
 </odoo>
 
