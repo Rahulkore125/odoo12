@@ -20,6 +20,7 @@ class SaleOrder(models.Model):
         compute='_compute_has_a_delivery', string='Has delivery',
         help="Has an order line set for delivery", store=True)
     order_reference_id = fields.Char(compute='_compute_order_ref_id', store=True, readonly=False)
+    currency_id = fields.Many2one('res.currency', readonly=True, default=lambda self: self.env.user.company_id.currency_id)
 
     @api.multi
     @api.depends('magento_bind_ids')
@@ -39,6 +40,11 @@ class SaleOrder(models.Model):
     def _compute_number_order_line(self):
         for rec in self:
             rec.number_of_sale_order_line = len(rec.order_line)
+
+    @api.model
+    def create(self, vals_list):
+        res = super(SaleOrder, self).create(vals_list)
+        return res
 
     # @api.model
     # def create(self, vals_list):
