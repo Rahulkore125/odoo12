@@ -86,6 +86,12 @@
                         <field name="shipper" required="1"/>
                     </div>
                 </xpath>
+                <xpath expr="//div[@name='carrier_selection']" position="after">
+                    <label for="order_reference_id"/>
+                    <div name="order_reference">
+                        <field name="order_reference_id" required="1"/>
+                    </div>
+                </xpath>
             </field>
         </record>
     </data>

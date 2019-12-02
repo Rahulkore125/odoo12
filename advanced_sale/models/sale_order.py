@@ -19,7 +19,7 @@ class SaleOrder(models.Model):
     has_a_delivery = fields.Boolean(
         compute='_compute_has_a_delivery', string='Has delivery',
         help="Has an order line set for delivery", store=True)
-    order_reference_id = fields.Char(compute='_compute_order_ref_id', store=True, readonly=False)
+    order_reference_id = fields.Char(compute='_compute_order_ref_id', store=True, readonly=False, string="Order Reference ID")
     currency_id = fields.Many2one('res.currency', readonly=True, default=lambda self: self.env.user.company_id.currency_id)
 
     @api.multi
