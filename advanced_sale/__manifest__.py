@@ -22,6 +22,7 @@
 
     # always loaded
     'data': [
+        'security/group.xml',
         'security/ir.model.access.csv',
         'data/sale_team_heineken_data.xml',
         'views/res_partner_view.xml',
