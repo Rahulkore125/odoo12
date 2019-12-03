@@ -1,3 +1,5 @@
+from datetime import date
+
 from odoo import fields, models, api
 
 
@@ -6,6 +8,7 @@ class StockPicking(models.Model):
 
     date_done_delivery = fields.Date()
     is_return_picking = fields.Boolean(default=False)
+    date_return = fields.Date()
 
 
 class StockReturnPicking(models.TransientModel):
@@ -32,6 +35,9 @@ class StockReturnPicking(models.TransientModel):
             move_line.quantity_done = move_line.product_uom_qty
         picking.action_done()
         picking.is_return_picking = True
+
+        picking.date_return = date.today()
+
         action = self.env['sale.order'].browse(picking.sale_id.id).action_view_delivery()
 
         return action
@@ -51,9 +57,14 @@ class StockScrap(models.Model):
     product_uom_id = fields.Many2one(
         'uom.uom', 'Unit of Measure',
         required=True, states={'done': [('readonly', True)]}, domain=lambda self: self._get_domain_product_uom_id())
+    date_scrap = fields.Date()
 
     @api.onchange('product_id')
     def _get_domain_product_uom_id(self):
         unit_measure = self.env.ref('uom.product_uom_unit').id
         product_uom = self.product_id.uom_id.id
         return {'domain': {'product_uom_id': [('id', 'in', [unit_measure, product_uom])]}}
+
+    def action_validate(self):
+        self.date_scrap = date.today()
+        super(StockScrap, self).action_validate()

@@ -28,7 +28,7 @@ class SaleHnkReport(models.Model):
         lazmall = self.env.ref('advanced_sale.lazmall').id
         lalafood = self.env.ref('advanced_sale.lalafood').id
 
-        #handle stock
+        # handle stock
         today_date = fields.Datetime.to_datetime(self.datetime_report)
         previous_day_date = fields.Datetime.to_datetime(self.datetime_report) + timedelta(days=-1)
         all_product = self.env['product.product'].search([])
@@ -97,13 +97,11 @@ class SaleHnkReport(models.Model):
                 }
 
         for sale_order in sale_orders:
-
             for sale_order_line in sale_order.order_line:
-
                 if not sale_order_line.is_reward_line and not sale_order_line.is_delivery:
                     # handle sale
                     if sale_order_line.product_id.id in product_ids:
-                        #handle amount and quantity
+                        # handle amount and quantity
                         if sale_order.team_id.id == sale:
                             product_ids[sale_order_line.product_id.id][
                                 'sum_sale_chanel'] += sale_order_line.product_uom_qty
@@ -167,8 +165,9 @@ class SaleHnkReport(models.Model):
                             elif sale_order.payment_method == 'online_payment':
                                 product_ids[sale_order_line.product_id.id][
                                     'amount_lalafood_ol'] += sale_order_line.price_subtotal
-                        #handle amount discount
-                        product_ids[sale_order_line.product_id.id]['amount_discount'] += sale_order_line.price_subtotal*sale_order_line.discount/100
+                        # handle amount discount
+                        product_ids[sale_order_line.product_id.id][
+                            'amount_discount'] += sale_order_line.price_subtotal * sale_order_line.discount / 100
 
                     else:
                         product_ids[sale_order_line.product_id.id] = {
@@ -191,17 +190,26 @@ class SaleHnkReport(models.Model):
                             'amount_lalafood_ol': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'online_payment' else 0,
                         }
 
-            #handle damaged, returned
-            pickings = sale_order.picking_ids
-            for picking in pickings:
-                scrap = self.env['stock.scrap'].search([('picking_id', '=', picking.id)])
-                for e in scrap:
-                    product_ids[e.product_id.id]['damaged'] += e.scrap_qty
-                stock_moves = picking.move_ids_without_package
-                if picking.is_return_picking:
-                    for f in stock_moves:
-                        if not f.scrapped:
-                            product_ids[f.product_id.id]['returned'] += f.product_uom_qty
+                # handle damaged, returned
+                # pickings = sale_order.picking_ids
+                # for picking in pickings:
+        scrap = self.env['stock.scrap'].search([('date_scrap', '=', self.date_report)])
+        for e in scrap:
+            product_ids[e.product_id.id]['damaged'] += e.scrap_qty
+        return_picking = self.env['stock.picking'].search(
+            [('date_return', '=', self.date_report), ('is_return_picking', '=', True)])
+        for e in return_picking:
+            for f in e.move_ids_without_package:
+                if not f.scrapped:
+                    product_ids[f.product_id.id]['returned'] += f.product_uom_qty
+
+        #         if not f.scrapped:
+        #             product_ids[f.product_id.id]['returned'] += f.product_uom_qty
+        # stock_moves = picking.move_ids_without_package
+        # if picking.is_return_picking:
+        #     for f in stock_moves:
+        #         if not f.scrapped:
+        #             product_ids[f.product_id.id]['returned'] += f.product_uom_qty
 
         self.env['sale.hnk.report.line'].search([]).unlink()
 
@@ -245,7 +253,6 @@ class SaleHnkReportLine(models.Model):
     sum_pos_chanel = fields.Float(string="Sold POS")
     sum_lazmall_chanel = fields.Float(string="Sold Lazmall")
     sum_lalafood_chanel = fields.Float(string="Sold Lalafood")
-
 
     amount_sale_cod = fields.Float(string="Amount Drinkies COD")
     amount_sale_ol = fields.Float(string="Amount Drinkies Online")
