@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import fields, models, api
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
@@ -42,3 +43,17 @@ class StockMove(models.Model):
     to_refund = fields.Boolean(string="To Refund (update SO/PO)", copy=False,
                                help='Trigger a decrease of the delivered/received quantity in the associated Sale Order/Purchase Order',
                                default=True)
+
+
+class StockScrap(models.Model):
+    _inherit = 'stock.scrap'
+
+    product_uom_id = fields.Many2one(
+        'uom.uom', 'Unit of Measure',
+        required=True, states={'done': [('readonly', True)]}, domain=lambda self: self._get_domain_product_uom_id())
+
+    @api.onchange('product_id')
+    def _get_domain_product_uom_id(self):
+        unit_measure = self.env.ref('uom.product_uom_unit').id
+        product_uom = self.product_id.uom_id.id
+        return {'domain': {'product_uom_id': [('id', 'in', [unit_measure, product_uom])]}}

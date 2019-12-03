@@ -57,5 +57,17 @@
                 </xpath>
             </field>
         </record>
+
+        <!-- Inherit Form View to Modify it -->
+        <record id="scrap_form_inherit" model="ir.ui.view">
+            <field name="name">Scrap Form Inherit</field>
+            <field name="model">stock.scrap</field>
+            <field name="inherit_id" ref="stock.stock_scrap_form_view2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='product_uom_id']" position="attributes">
+                    <attribute name="options">{'no_create_edit': True}</attribute>
+                </xpath>
+            </field>
+        </record>
     </data>
 </odoo>
