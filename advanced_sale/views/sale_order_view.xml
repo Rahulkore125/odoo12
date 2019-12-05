@@ -83,13 +83,13 @@
                 <xpath expr="//div[@name='carrier_selection']" position="after">
                     <label for="shipper"/>
                     <div name="shipper_selection">
-                        <field name="shipper" required="1"/>
+                        <field name="shipper"/>
                     </div>
                 </xpath>
                 <xpath expr="//div[@name='carrier_selection']" position="after">
                     <label for="order_reference_id"/>
                     <div name="order_reference">
-                        <field name="order_reference_id" required="1"/>
+                        <field name="order_reference_id"/>
                     </div>
                 </xpath>
             </field>
