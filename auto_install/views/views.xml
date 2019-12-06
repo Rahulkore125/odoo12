@@ -1,0 +1,60 @@
+<odoo>
+  <data>
+    <!-- explicit list view definition -->
+    <!--
+    <record model="ir.ui.view" id="auto_install.list">
+      <field name="name">auto_install list</field>
+      <field name="model">auto_install.auto_install</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="name"/>
+          <field name="value"/>
+          <field name="value2"/>
+        </tree>
+      </field>
+    </record>
+    -->
+
+    <!-- actions opening views on models -->
+    <!--
+    <record model="ir.actions.act_window" id="auto_install.action_window">
+      <field name="name">auto_install window</field>
+      <field name="res_model">auto_install.auto_install</field>
+      <field name="view_mode">tree,form</field>
+    </record>
+    -->
+
+    <!-- server action to the one above -->
+    <!--
+    <record model="ir.actions.server" id="auto_install.action_server">
+      <field name="name">auto_install server</field>
+      <field name="model_id" ref="model_auto_install_auto_install"/>
+      <field name="state">code</field>
+      <field name="code">
+        action = {
+          "type": "ir.actions.act_window",
+          "view_mode": "tree,form",
+          "res_model": self._name,
+        }
+      </field>
+    </record>
+    -->
+
+    <!-- Top menu item -->
+    <!--
+    <menuitem name="auto_install" id="auto_install.menu_root"/>
+    -->
+    <!-- menu categories -->
+    <!--
+    <menuitem name="Menu 1" id="auto_install.menu_1" parent="auto_install.menu_root"/>
+    <menuitem name="Menu 2" id="auto_install.menu_2" parent="auto_install.menu_root"/>
+    -->
+    <!-- actions -->
+    <!--
+    <menuitem name="List" id="auto_install.menu_1_list" parent="auto_install.menu_1"
+              action="auto_install.action_window"/>
+    <menuitem name="Server to list" id="auto_install" parent="auto_install.menu_2"
+              action="auto_install.action_server"/>
+    -->
+  </data>
+</odoo>
