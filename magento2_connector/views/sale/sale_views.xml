@@ -888,10 +888,27 @@
         <field name="model">magento.sale.order</field>
         <field name="arch" type="xml">
             <search string="">
-                <filter name="group_currency_id" string="Currency" icon="terp-partner" context="{'group_by':'currency_id'}"/>
+                <filter name="group_currency_id" string="Currency" icon="terp-partner"
+                        context="{'group_by':'currency_id'}"/>
             </search>
         </field>
     </record>
+
+    <!-- Inherit Form View to Modify it -->
+    <record id="sale_order_view_inherit" model="ir.ui.view">
+        <field name="name">sale order view form inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="delivery.view_order_form_with_carrier"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='carrier_selection']" position="after">
+                <label for="order_reference_id"/>
+                <div name="order_reference">
+                    <field name="order_reference_id"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
     <menuitem id="sale_order_menu"
               name="Orders"
               parent="magento_customer_and_sale"

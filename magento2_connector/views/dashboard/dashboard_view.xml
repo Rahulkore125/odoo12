@@ -76,20 +76,6 @@
                                 </div>
                             </div>
 
-                            <div class="col-4 o_kanban_card_manage_section o_kanban_manage_new">
-                                <div class="o_kanban_card_manage_title">
-                                    <span>Invoices</span>
-                                </div>
-                                <div>
-                                    <a type="action" name="%(action_domain_invoice_tree)d">
-                                        <span>
-                                            <t t-esc="dashboard.number_account_invoice"/>
-                                            Invoice
-                                        </span>
-                                    </a>
-                                </div>
-                            </div>
-
                             <div class="col-4 o_kanban_card_manage_section o_kanban_manage_reports">
                                 <div class="o_kanban_card_manage_title">
                                     <span>Others</span>

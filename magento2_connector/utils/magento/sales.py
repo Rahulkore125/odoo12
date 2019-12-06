@@ -198,6 +198,7 @@ class Order(Client):
                     product_id = product_item['product_id']
                     default_code = product_item['sku']
 
+                    print(backend_id)
                     context.env.cr.execute("""
                                                    SELECT * FROM combine_id({backend_id},{amount},'{default_code}',{external_id})""".
                                            format(backend_id=backend_id, amount=tax_percent_fix,
@@ -205,6 +206,7 @@ class Order(Client):
                                                   external_id=product_id))
 
                     tmp = context.env.cr.fetchone()
+                    print(tmp)
                     if tmp:
                         account_tax_id = (tmp[0] if tmp[0] else '')
                         if tmp[2]:
@@ -308,7 +310,7 @@ class Order(Client):
                                 # 'partner_invoice_id': partner_invoice_id,
                                 # 'partner_shipping_id': partner_shipping_id,
                                 'pricelist_id': product_price_list_id,
-                                'state': status,
+                                'state': 'draft',
                                 'confirmation_date': confirmation_date,
                                 'order_line': order_lines if len(order_lines) > 0 else '',
                                 'has_delivery': True if shipment_method else '',
@@ -405,6 +407,9 @@ class Order(Client):
         if sale_orders and len(sale_orders) > 0:
             # for so in sale_orders:
             res = context.env['sale.order'].sudo().create(sale_orders)
+            for e in res:
+                e.action_confirm()
+                e.order_reference_id = e.name
             sale_order_ids = []
             for sale_order_id in res:
                 sale_order_ids.append((sale_order_id.id,))
@@ -416,74 +421,74 @@ class Order(Client):
                         values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
                     tuple(magento_sale_orders_mapped_id))
 
-    def import_shipment_on_sale_order(self, external_sale_order_id, shipment_product, backend_id, context=None):
-        product_order_line_id = []
-        magento_sale_order = context.env['magento.sale.order'].sudo().search(
-            [('external_id', '=', external_sale_order_id), ('backend_id', '=', backend_id)])
-        if len(magento_sale_order.odoo_id.ids) > 0:
-            odoo_sale_order_id = magento_sale_order.odoo_id.ids[0]
-            stock_picking = context.env['stock.picking'].search([('sale_id', '=', odoo_sale_order_id)])
-            so = context.env['sale.order'].sudo().browse(odoo_sale_order_id)
-            if not stock_picking:
-                if so.state != 'done' and so.state != 'cancel':
-                    so.action_confirm()
-                stock_picking = so.picking_ids
-            if len(stock_picking.ids) > 0:
-                stock_picking_id = stock_picking.ids[0]
-                # # add picking_ids to sale_order
-                # context.env.cr.execute("""UPDATE sale_order SET picking_ids = %s WHERE id = %s """,
-                #                        (stock_picking_id, odoo_sale_order_id))
-
-                orders_line = context.env['sale.order.line'].search([('order_id', '=', odoo_sale_order_id)])
-                orders_line_id = orders_line.ids
-                for e in orders_line_id:
-                    order_line = context.env['sale.order.line'].search([('id', '=', e)])
-                    order_line_product_id = order_line.product_id.ids[0]
-                    product_order_line_id.append(order_line_product_id)
-
-                for e in shipment_product:
-                    product_shipment = context.env['magento.product.product'].search([('external_id', '=', e[0])])
-
-                    if len(product_shipment.odoo_id.ids) > 0:
-                        product_shipment_id = product_shipment.odoo_id.ids[0]
-
-                        if product_shipment_id in product_order_line_id:
-                            stock_move_line = context.env['stock.move.line'].search(
-                                [('picking_id', '=', stock_picking_id), ('product_id', '=', product_shipment_id)])
-                            stock_move_line.write({
-                                'qty_done': e[1]
-                            })
-                    else:
-                        product_shipment_id = None
-
-                        if product_shipment_id in product_order_line_id:
-                            stock_move_line = context.env['stock.move.line'].search(
-                                [('picking_id', '=', stock_picking_id), ('product_id', '=', product_shipment_id)])
-                            stock_move_line.write({
-                                'qty_done': e[1]
-                            })
-                context.env['stock.picking'].sudo().browse(stock_picking_id).action_done()
-
-                if magento_sale_order.state == 'complete':
-                    # magento_invoices = context.env['magento.account.invoice'].search(
-                    #     [('magento_order_id', '=', magento_sale_order.id), ('backend_id', '=', backend_id)])
-                    # if len(magento_invoices.odoo_id.ids) > 0:
-                    #     odoo_invoice_id = magento_sale_order.odoo_id.ids[0]
-                    #     so.invoice_ids = odoo_invoice_id
-                    magento_sale_order.write({'status': 'done'})
-                    context.env.cr.execute("""UPDATE sale_order SET state = %s , invoice_status = %s WHERE id = %s """,
-                                           ('done', 'invoiced', odoo_sale_order_id))
-            else:
-                # print('cant find odoo stock picking for order ' + str(odoo_sale_order_id))
-                pass
-        else:
-            print('cant find odoo sale order ' + str(external_sale_order_id))
-
-    def import_shipment(self, shipments, backend_id, context=None):
-        for shipment in shipments['items']:
-            # total_qty = shipment['total_qty']
-            sale_order_id = shipment['order_id']
-            product = []
-            for e in shipment['items']:
-                product.append((e['product_id'], e['qty']))
-            self.import_shipment_on_sale_order(sale_order_id, product, backend_id, context)
+    # def import_shipment_on_sale_order(self, external_sale_order_id, shipment_product, backend_id, context=None):
+    #     product_order_line_id = []
+    #     magento_sale_order = context.env['magento.sale.order'].sudo().search(
+    #         [('external_id', '=', external_sale_order_id), ('backend_id', '=', backend_id)])
+    #     if len(magento_sale_order.odoo_id.ids) > 0:
+    #         odoo_sale_order_id = magento_sale_order.odoo_id.ids[0]
+    #         stock_picking = context.env['stock.picking'].search([('sale_id', '=', odoo_sale_order_id)])
+    #         so = context.env['sale.order'].sudo().browse(odoo_sale_order_id)
+    #         if not stock_picking:
+    #             if so.state != 'done' and so.state != 'cancel':
+    #                 so.action_confirm()
+    #             stock_picking = so.picking_ids
+    #         if len(stock_picking.ids) > 0:
+    #             stock_picking_id = stock_picking.ids[0]
+    #             # # add picking_ids to sale_order
+    #             # context.env.cr.execute("""UPDATE sale_order SET picking_ids = %s WHERE id = %s """,
+    #             #                        (stock_picking_id, odoo_sale_order_id))
+    #
+    #             orders_line = context.env['sale.order.line'].search([('order_id', '=', odoo_sale_order_id)])
+    #             orders_line_id = orders_line.ids
+    #             for e in orders_line_id:
+    #                 order_line = context.env['sale.order.line'].search([('id', '=', e)])
+    #                 order_line_product_id = order_line.product_id.ids[0]
+    #                 product_order_line_id.append(order_line_product_id)
+    #
+    #             for e in shipment_product:
+    #                 product_shipment = context.env['magento.product.product'].search([('external_id', '=', e[0])])
+    #
+    #                 if len(product_shipment.odoo_id.ids) > 0:
+    #                     product_shipment_id = product_shipment.odoo_id.ids[0]
+    #
+    #                     if product_shipment_id in product_order_line_id:
+    #                         stock_move_line = context.env['stock.move.line'].search(
+    #                             [('picking_id', '=', stock_picking_id), ('product_id', '=', product_shipment_id)])
+    #                         stock_move_line.write({
+    #                             'qty_done': e[1]
+    #                         })
+    #                 else:
+    #                     product_shipment_id = None
+    #
+    #                     if product_shipment_id in product_order_line_id:
+    #                         stock_move_line = context.env['stock.move.line'].search(
+    #                             [('picking_id', '=', stock_picking_id), ('product_id', '=', product_shipment_id)])
+    #                         stock_move_line.write({
+    #                             'qty_done': e[1]
+    #                         })
+    #             context.env['stock.picking'].sudo().browse(stock_picking_id).action_done()
+    #
+    #             if magento_sale_order.state == 'complete':
+    #                 # magento_invoices = context.env['magento.account.invoice'].search(
+    #                 #     [('magento_order_id', '=', magento_sale_order.id), ('backend_id', '=', backend_id)])
+    #                 # if len(magento_invoices.odoo_id.ids) > 0:
+    #                 #     odoo_invoice_id = magento_sale_order.odoo_id.ids[0]
+    #                 #     so.invoice_ids = odoo_invoice_id
+    #                 magento_sale_order.write({'status': 'done'})
+    #                 context.env.cr.execute("""UPDATE sale_order SET state = %s , invoice_status = %s WHERE id = %s """,
+    #                                        ('done', 'invoiced', odoo_sale_order_id))
+    #         else:
+    #             # print('cant find odoo stock picking for order ' + str(odoo_sale_order_id))
+    #             pass
+    #     else:
+    #         print('cant find odoo sale order ' + str(external_sale_order_id))
+    #
+    # def import_shipment(self, shipments, backend_id, context=None):
+    #     for shipment in shipments['items']:
+    #         # total_qty = shipment['total_qty']
+    #         sale_order_id = shipment['order_id']
+    #         product = []
+    #         for e in shipment['items']:
+    #             product.append((e['product_id'], e['qty']))
+    #         self.import_shipment_on_sale_order(sale_order_id, product, backend_id, context)

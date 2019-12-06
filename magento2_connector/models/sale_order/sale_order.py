@@ -13,22 +13,23 @@ class SaleOrder(models.Model):
 
     is_magento_sale_order = fields.Boolean("is_magento_sale_order")
     currency_id = fields.Many2one("res.currency", related='pricelist_id.currency_id', string="Currency", readonly=True, store=True)
-
-    @api.multi
-    def action_view_invoice(self):
-        if self.is_magento_sale_order:
-            invoices = self.mapped('invoice_ids')
-            action = self.env.ref('account.action_invoice_tree1').read()[0]
-            if len(invoices) > 1:
-                action['domain'] = [('id', 'in', invoices.ids)]
-            elif len(invoices) == 1:
-                action['views'] = [(self.env.ref('magento2_connector.invoice_form').id, 'form')]
-                action['res_id'] = invoices.ids[0]
-            else:
-                action = {'type': 'ir.actions.act_window_close'}
-            return action
-        else:
-            return super(SaleOrder, self).action_view_invoice()
+    order_reference_id = fields.Char(compute='_compute_order_ref_id', store=True, readonly=False,
+                                     string="Order Reference ID")
+    # @api.multi
+    # def action_view_invoice(self):
+    #     if self.is_magento_sale_order:
+    #         invoices = self.mapped('invoice_ids')
+    #         action = self.env.ref('account.action_invoice_tree1').read()[0]
+    #         if len(invoices) > 1:
+    #             action['domain'] = [('id', 'in', invoices.ids)]
+    #         elif len(invoices) == 1:
+    #             action['views'] = [(self.env.ref('magento2_connector.invoice_form').id, 'form')]
+    #             action['res_id'] = invoices.ids[0]
+    #         else:
+    #             action = {'type': 'ir.actions.act_window_close'}
+    #         return action
+    #     else:
+    #         return super(SaleOrder, self).action_view_invoice()
 
 
 class SaleOrderLine(models.Model):

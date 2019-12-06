@@ -20,7 +20,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account', 'sale', 'sale_management', 'product', 'payment', 'delivery'],
+    'depends': ['base', 'account', 'sale', 'sale_management', 'product', 'payment', 'delivery', 'advanced_sale'],
 
     # always loaded
     'data': [
@@ -31,8 +31,8 @@
         'views/product/categories.xml',
         # 'views/config/res_config_settings_views.xml',
         'views/config/magento_instance.xml',
-        'views/invoice/invoice_view.xml',
-        'views/invoice/invoice_magento_filter_view.xml',
+        # 'views/invoice/invoice_view.xml',
+        # 'views/invoice/invoice_magento_filter_view.xml',
         'views/product/product_magento_filter_view.xml',
         'views/sale/sale_order_magento_filter_view.xml',
         'views/product/product_attributes_view.xml',

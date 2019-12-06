@@ -10,7 +10,6 @@ access_magento_res_partner_category,Magento Customers Group,model_magento_res_pa
 access_magento_address,Mageto address,model_magento_address,,1,1,1,1
 access_magento_sale_order,Magento sale order,model_magento_sale_order,,1,1,1,1
 access_magento_sale_order_line,Magento sale order line,model_magento_sale_order_line,,1,1,1,1
-access_magento_account_invoice,Magento invoice,model_magento_account_invoice,,1,1,1,1
 access_magento_operation,Magento operation,model_magento_operation,,1,1,1,1
 access_magento_product_product,Magento product,model_magento_product_product,,1,1,1,1
 access_magento_product_category,Magento product category,model_magento_product_category,,1,1,1,1
