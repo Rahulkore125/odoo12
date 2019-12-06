@@ -18,7 +18,7 @@
     'version': '1.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale', 'delivery', 'mail', 'stock', 'sales_team', 'uom', 'stock_account', 'magento2_connector'],
+    'depends': ['base', 'sale', 'delivery', 'mail', 'stock', 'sales_team', 'uom', 'stock_account'],
 
     # always loaded
     'data': [
@@ -26,7 +26,7 @@
         'security/ir.model.access.csv',
         'data/sale_team_heineken_data.xml',
         'views/res_partner_view.xml',
-        'views/sale_order_view.xml',
+        # 'views/sale_order_view.xml',
         'views/sale_hnk_report_view.xml',
         'views/stock_view.xml'
     ],
