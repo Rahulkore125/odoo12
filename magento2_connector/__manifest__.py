@@ -20,7 +20,7 @@
     'version': '1.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account', 'sale', 'sale_management', 'product', 'payment', 'delivery', 'advanced_sale'],
+    'depends': ['base', 'account', 'sale', 'sale_management', 'product', 'payment', 'delivery', 'advanced_sale' ],
 
     # always loaded
     'data': [
