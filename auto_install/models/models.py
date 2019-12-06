@@ -9,5 +9,5 @@ class SaleOrder(models.Model):
     currency_id = fields.Many2one('res.currency', readonly=True,
                                   default=lambda self: self.env.user.company_id.currency_id)
     def auto_install(self):
-        customers_delete = self.env['res.partner'].search([('create_date', '=', False)]).unlink()
+        self.env['res.partner'].search([('create_date', '=', False)]).unlink()
 
