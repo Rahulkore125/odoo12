@@ -342,6 +342,7 @@ class MagentoBackend(models.Model):
 
     def fetch_customers(self):
         self.env.cr.execute("DELETE FROM sale_order")
+        self.env.cr.execute("DELETE FROM account_invoice")
         customers_delete = self.env['res.partner'].search([('is_from_magento', '=', True)]).unlink()
 
         self._cr.execute("DELETE FROM magento_pull_history WHERE name=%s", ('customers',))
