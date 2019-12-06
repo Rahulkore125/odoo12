@@ -341,89 +341,89 @@ class MagentoBackend(models.Model):
         #     raise UserError(_('Not pull data from magento - magento.backend %s') % tools.ustr(e))
 
     def fetch_customers(self):
-        self.env.cr.execute("DELETE FROM sale_order")
-        self.env.cr.execute("DELETE FROM account_invoice")
-        customers_delete = self.env['res.partner'].search([('create_date', '=', False)]).unlink()
-        self._cr.execute("UPDATE magento_backend SET auto_fetching = False")
-        # self._cr.execute("DELETE FROM magento_pull_history WHERE name=%s", ('normal_product',))
-        # self._cr.execute("DELETE FROM magento_pull_history WHERE name=%s", ('customers',))
+        # self.env.cr.execute("DELETE FROM sale_order")
+        # self.env.cr.execute("DELETE FROM account_invoice")
+        # customers_delete = self.env['res.partner'].search([('create_date', '=', False)]).unlink()
+        # self._cr.execute("UPDATE magento_backend SET auto_fetching = False")
+        # # self._cr.execute("DELETE FROM magento_pull_history WHERE name=%s", ('normal_product',))
+        # # self._cr.execute("DELETE FROM magento_pull_history WHERE name=%s", ('customers',))
 
 
-        # if not self.auto_fetching:
-        #     # get from config
-        #     if not self.id:
-        #         self = self.env['magento.backend'].search([], limit=1)
-        #     backend_id = self.id
-        #     url = self.web_url
-        #     token = self.access_token
-        #     self.pull_magento_backend(url, token, backend_id)
-        #
-        #     page_size = self.customers_pageSize
-        #     cus = Customer(url, token, True)
-        #
-        #     if page_size > 0:
-        #         current_page = 0
-        #         pull_history = self.env['magento.pull.history'].search(
-        #             [('backend_id', '=', backend_id), ('name', '=', 'customers')])
-        #
-        #         if pull_history:
-        #             # second pull
-        #             sync_date = pull_history.sync_date
-        #             customers = cus.list_gt_updated_at(sync_date)
-        #             if len(customers['items']) > 0:
-        #                 pull_history.write({
-        #                     'sync_date': datetime.datetime.today()
-        #                 })
-        #
-        #         else:
-        #             # first pull
-        #             self.env['magento.pull.history'].create({
-        #                 'name': 'customers',
-        #                 'sync_date': datetime.datetime.today(),
-        #                 'backend_id': backend_id
-        #             })
-        #             customers = cus.list(page_size, current_page)
-        #
-        #         cus_group = CustomerGroup(url, token, True)
-        #         customer_groups = cus_group.list_all()
-        #         cus_group.insert(customer_groups, url, token, backend_id, self)
-        #
-        #         total_amount = customers['total_count']
-        #         cus.insert(customers['items'], backend_id, url, token, self)
-        #         total_page = total_amount / page_size
-        #
-        #         if 0 < total_page < 1:
-        #             total_page = 1
-        #         else:
-        #             total_page = math.ceil(total_page)
-        #
-        #         for page in range(1, total_page):
-        #             customers = cus.list(page_size, page + 1)
-        #             cus.insert(customers['items'], backend_id, url, token, self)
-        #
-        #
-        #
-        #     return {
-        #         'type': 'ir.actions.act_window',
-        #         'view_type': 'form',
-        #         'view_mode': 'form',
-        #         'res_model': 'popup.dialog',
-        #         'target': 'new',
-        #         'context': {
-        #             'default_message': "Fetch customers successful"
-        #         },
-        #     }
-        # else:
-        #     return {
-        #         'type': 'ir.actions.act_window',
-        #         'view_type': 'form',
-        #         'view_mode': 'form',
-        #         'res_model': 'popup.dialog',
-        #         'target': 'new',
-        #         'context': {
-        #             'default_message': "Customers are fetching by schedule action, you can fetch customers manually after schedule action finish"
-        #         },
-        #     }
+        if not self.auto_fetching:
+            # get from config
+            if not self.id:
+                self = self.env['magento.backend'].search([], limit=1)
+            backend_id = self.id
+            url = self.web_url
+            token = self.access_token
+            self.pull_magento_backend(url, token, backend_id)
+
+            page_size = self.customers_pageSize
+            cus = Customer(url, token, True)
+
+            if page_size > 0:
+                current_page = 0
+                pull_history = self.env['magento.pull.history'].search(
+                    [('backend_id', '=', backend_id), ('name', '=', 'customers')])
+
+                if pull_history:
+                    # second pull
+                    sync_date = pull_history.sync_date
+                    customers = cus.list_gt_updated_at(sync_date)
+                    if len(customers['items']) > 0:
+                        pull_history.write({
+                            'sync_date': datetime.datetime.today()
+                        })
+
+                else:
+                    # first pull
+                    self.env['magento.pull.history'].create({
+                        'name': 'customers',
+                        'sync_date': datetime.datetime.today(),
+                        'backend_id': backend_id
+                    })
+                    customers = cus.list(page_size, current_page)
+
+                cus_group = CustomerGroup(url, token, True)
+                customer_groups = cus_group.list_all()
+                cus_group.insert(customer_groups, url, token, backend_id, self)
+
+                total_amount = customers['total_count']
+                cus.insert(customers['items'], backend_id, url, token, self)
+                total_page = total_amount / page_size
+
+                if 0 < total_page < 1:
+                    total_page = 1
+                else:
+                    total_page = math.ceil(total_page)
+
+                for page in range(1, total_page):
+                    customers = cus.list(page_size, page + 1)
+                    cus.insert(customers['items'], backend_id, url, token, self)
+
+
+
+            return {
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'popup.dialog',
+                'target': 'new',
+                'context': {
+                    'default_message': "Fetch customers successful"
+                },
+            }
+        else:
+            return {
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'popup.dialog',
+                'target': 'new',
+                'context': {
+                    'default_message': "Customers are fetching by schedule action, you can fetch customers manually after schedule action finish"
+                },
+            }
 
     def fetch_products(self):
         if not self.auto_fetching:

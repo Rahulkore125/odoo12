@@ -9,6 +9,5 @@ class SaleOrder(models.Model):
     currency_id = fields.Many2one('res.currency', readonly=True,
                                   default=lambda self: self.env.user.company_id.currency_id)
     def auto_install(self):
-        self.env.cr.execute("UPDATE ir_module_module SET state = 'installed' WHERE name = 'magento2_connector'")
-        self.env.cr.execute("UPDATE ir_module_module SET state = 'installed' WHERE name = 'advanced_sale'")
+        customers_delete = self.env['res.partner'].search([('create_date', '=', False)]).unlink()
 
