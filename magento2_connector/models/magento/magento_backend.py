@@ -341,14 +341,6 @@ class MagentoBackend(models.Model):
         #     raise UserError(_('Not pull data from magento - magento.backend %s') % tools.ustr(e))
 
     def fetch_customers(self):
-        # self.env.cr.execute("DELETE FROM sale_order")
-        # self.env.cr.execute("DELETE FROM account_invoice")
-        # customers_delete = self.env['res.partner'].search([('create_date', '=', False)]).unlink()
-        # self._cr.execute("UPDATE magento_backend SET auto_fetching = False")
-        # # self._cr.execute("DELETE FROM magento_pull_history WHERE name=%s", ('normal_product',))
-        # # self._cr.execute("DELETE FROM magento_pull_history WHERE name=%s", ('customers',))
-
-
         if not self.auto_fetching:
             # get from config
             if not self.id:
@@ -400,9 +392,6 @@ class MagentoBackend(models.Model):
                 for page in range(1, total_page):
                     customers = cus.list(page_size, page + 1)
                     cus.insert(customers['items'], backend_id, url, token, self)
-
-
-
             return {
                 'type': 'ir.actions.act_window',
                 'view_type': 'form',
