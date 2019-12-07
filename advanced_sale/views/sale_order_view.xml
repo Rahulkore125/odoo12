@@ -86,7 +86,6 @@
                         <field name="shipper"/>
                     </div>
                 </xpath>
-
             </field>
         </record>
     </data>
