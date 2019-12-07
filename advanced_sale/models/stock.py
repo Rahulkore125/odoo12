@@ -8,6 +8,7 @@ class StockPicking(models.Model):
 
     date_done_delivery = fields.Date()
     is_return_picking = fields.Boolean(default=False)
+    has_return_picking = fields.Boolean(default=False)
     date_return = fields.Date()
 
 
@@ -37,7 +38,9 @@ class StockReturnPicking(models.TransientModel):
         picking.is_return_picking = True
 
         picking.date_return = date.today()
-
+        origin_picking = self.env['stock.picking'].search(
+            [('sale_id', '=', picking.sale_id.id), ('is_return_picking', '=', False)])
+        origin_picking.has_return_picking = True
         action = self.env['sale.order'].browse(picking.sale_id.id).action_view_delivery()
 
         return action
