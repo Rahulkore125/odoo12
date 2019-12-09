@@ -198,7 +198,7 @@ class Order(Client):
                     product_id = product_item['product_id']
                     default_code = product_item['sku']
 
-                    print(backend_id)
+
                     context.env.cr.execute("""
                                                    SELECT * FROM combine_id({backend_id},{amount},'{default_code}',{external_id})""".
                                            format(backend_id=backend_id, amount=tax_percent_fix,
@@ -206,7 +206,7 @@ class Order(Client):
                                                   external_id=product_id))
 
                     tmp = context.env.cr.fetchone()
-                    print(tmp)
+
                     if tmp:
                         account_tax_id = (tmp[0] if tmp[0] else '')
                         if tmp[2]:
@@ -407,49 +407,40 @@ class Order(Client):
         drinkies_sale_team = context.env.ref('advanced_sale.sale').id
 
         # if sale_orders and len(sale_orders) > 0:
-        #     i = 0
-        #     print(sale_orders)
-        #     for e in sale_orders:
-        #         i = i +1
-        #         print(i)
-            # for so in sale_orders:
-        res = context.env['sale.order'].sudo().create(sale_orders[65])
-        # res.action_confirm()
-        print(sale_orders[65])
-        res.order_reference_id = res.name
-        res.team_id = drinkies_sale_team
-        sale_order_ids = []
-        for sale_order_id in res:
-            sale_order_ids.append((sale_order_id.id,))
-
-        magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
-        if magento_sale_orders and len(magento_sale_orders) > 0:
-            context.env.cr.execute(
-                """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
-                    values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
-                tuple(magento_sale_orders_mapped_id))
-
-        # if sale_orders and len(sale_orders) > 0:
-        #     i = 0
-        #     print(sale_orders)
-        #     for e in sale_orders:
-        #         i = i +1
-        #         print(i)
-        #     # for so in sale_orders:
-        #         res = context.env['sale.order'].sudo().create(e)
-        #         res.action_confirm()
-        #         res.order_reference_id = res.name
-        #         res.team_id = drinkies_sale_team
-        #     sale_order_ids = []
-        #     for sale_order_id in res:
-        #         sale_order_ids.append((sale_order_id.id,))
+        #     res = context.env['sale.order'].sudo().create(sale_orders[65])
+        # # res.action_confirm()
+        # res.order_reference_id = res.name
+        # res.team_id = drinkies_sale_team
+        # sale_order_ids = []
+        # for sale_order_id in res:
+        #     sale_order_ids.append((sale_order_id.id,))
         #
-        #     magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
-        #     if magento_sale_orders and len(magento_sale_orders) > 0:
-        #         context.env.cr.execute(
-        #             """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
-        #                 values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
-        #             tuple(magento_sale_orders_mapped_id))
+        # magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
+        # if magento_sale_orders and len(magento_sale_orders) > 0:
+        #     context.env.cr.execute(
+        #         """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
+        #             values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
+        #         tuple(magento_sale_orders_mapped_id))
+
+        sale_order_ids = []
+
+        if sale_orders and len(sale_orders) > 0:
+            # for e in sale_orders:
+            res = context.env['sale.order'].sudo().create(sale_orders)
+            for e in res:
+                e.order_reference_id = e.name
+                e.team_id = drinkies_sale_team
+                e.action_confirm()
+                sale_order_ids.append((e.id,))
+
+
+            magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
+            if magento_sale_orders and len(magento_sale_orders) > 0:
+                context.env.cr.execute(
+                    """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
+                        values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
+                    tuple(magento_sale_orders_mapped_id))
+
 
     # def import_shipment_on_sale_order(self, external_sale_order_id, shipment_product, backend_id, context=None):
     #     product_order_line_id = []

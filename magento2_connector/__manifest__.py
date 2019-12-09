@@ -20,7 +20,7 @@
     'version': '2.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account', 'sale', 'sale_management', 'product', 'payment', 'delivery', 'advanced_invoice'],
+    'depends': ['base', 'account', 'sale', 'sale_management', 'product', 'payment', 'delivery', 'advanced_invoice','sale_coupon'],
 
     # always loaded
     'data': [

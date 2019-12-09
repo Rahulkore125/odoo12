@@ -6,7 +6,6 @@ class ProductAttribute(models.Model):
     backend_id = fields.Many2one(
         comodel_name='magento.backend',
         string='Magento Backend',
-        required=True,
         ondelete='restrict',
     )
     external_id = fields.Integer(string='ID on Magento')
@@ -25,7 +24,6 @@ class ProductAttributeValue(models.Model):
     backend_id = fields.Many2one(
         comodel_name='magento.backend',
         string='Magento Backend',
-        required=True,
         ondelete='restrict',
     )
     attribute_id_external_id = fields.Integer(string='Attribute ID on Magento')

@@ -31,10 +31,6 @@ class MagentoBackendDashboard(models.Model):
         number_customer = self.env.cr.fetchone()[0]
         number_product = 0
 
-        # invoice
-        self.env.cr.execute("""SELECT COUNT(DISTINCT(id)) FROM magento_account_invoice  WHERE backend_id = %s""",
-                            (magento_backend_id,))
-        number_account_invoice = self.env.cr.fetchone()[0]
 
         # order
         self.env.cr.execute(
@@ -65,7 +61,6 @@ class MagentoBackendDashboard(models.Model):
             'number_store_view': number_store_view,
             'number_customer': number_customer,
             'number_product': number_product,
-            'number_account_invoice': number_account_invoice,
             'number_sale_order': number_sale_order,
             'number_quotation': number_quotation,
             'number_done': number_done,
