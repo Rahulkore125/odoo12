@@ -593,25 +593,25 @@ class MagentoBackend(models.Model):
                         'sync_date': datetime.datetime.today(),
                         'backend_id': backend_id
                     })
-                    orders = order.list(page_size, current_page)
-
-                total_amount = orders['total_count']
-                order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
-                total_page = total_amount / page_size
-
-                if 0 < total_page < 1:
-                    total_page = 1
-                else:
-                    total_page = math.ceil(total_page)
-
-                for page in range(1, total_page):
-                    orders = order.list(page_size, page + 1)
-                    order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
-
-                # page_size = 10
-                # # for page in range(1, total_page):
-                # orders = order.list(page_size, 1)
+                #     orders = order.list(page_size, current_page)
+                #
+                # total_amount = orders['total_count']
                 # order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
+                # total_page = total_amount / page_size
+                #
+                # if 0 < total_page < 1:
+                #     total_page = 1
+                # else:
+                #     total_page = math.ceil(total_page)
+                #
+                # for page in range(1, total_page):
+                #     orders = order.list(page_size, page + 1)
+                #     order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
+
+                page_size = 10
+                # for page in range(1, total_page):
+                orders = order.list(page_size, 1)
+                order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
 
             # sync shipments
             # pull_shipments_history = self.env['magento.pull.history'].search(
