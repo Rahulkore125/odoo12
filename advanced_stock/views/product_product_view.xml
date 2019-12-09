@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+       <!-- Inherit Form View to Modify it -->
+       <record id="product_product_view_inherit" model="ir.ui.view">
+           <field name="name">product_product_view_inherit</field>
+           <field name="model">product.product</field>
+           <field name="inherit_id" ref="product.product_normal_form_view"/>
+           <field name="arch" type="xml">
+               <xpath expr="//field[@name='categ_id']" position="after">
+                   <field name="display_deduct_parent_product" invisible="1"/>
+               </xpath>
+               <xpath expr="//field[@name='lst_price']" position="after">
+                   <field name="deduct_amount_parent_product"/>
+               </xpath>
+           </field>
+       </record>
+
+        <!-- Inherit Form View to Modify it -->
+        <record id="product_variant_easy_view" model="ir.ui.view">
+            <field name="name">product_variant_easy_view</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[2]" position="after">
+                    <group string="Stock">
+                        <field name="deduct_amount_parent_product"/>
+                    </group>
+                </xpath>
+
+            </field>
+        </record>
+    </data>
+</odoo>
