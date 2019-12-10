@@ -19,6 +19,7 @@ class SaleOrder(models.Model):
         self.env.cr.execute("DELETE from account_move")
         self.env.cr.execute("DELETE from account_move_line")
         self.env.cr.execute("DELETE from stock_inventory")
+        self.env.cr.execute("DELETE from stock_picking")
         self.env.cr.execute("DELETE from stock_move")
         self.env.cr.execute("DELETE from stock_quant")
         self.env.cr.execute("DELETE  from product_template WHERE is_magento_product = True")
