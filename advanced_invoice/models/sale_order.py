@@ -19,6 +19,8 @@ class SaleOrder(models.Model):
             })
 
             invoice.action_invoice_open()
+            if invoice.state != 'open':
+                invoice.state = 'open'
             if self.payment_method == 'cod':
                 journal_id = self.env['account.journal'].search([('code', '=', 'CSH1')]).id
             elif self.payment_method == 'online_payment':

@@ -549,6 +549,7 @@ class MagentoBackend(models.Model):
         if not self.auto_fetching:
             if not self.id:
                 self = self.env['magento.backend'].search([], limit=1)
+            self.fetch_products()
             self.fetch_customers()
             self.fetch_tax()
             # self.fetch_invoice()
@@ -742,7 +743,7 @@ class MagentoBackend(models.Model):
         # print('\n\n\n\n')
         # print("start fetch at " + str(datetime.datetime.now()))
         # time.sleep(120)
-        # time.sleep(120)
+        # time.sleep(120)f
         # print("start fetch at 1111 " + str(datetime.datetime.now()))
 
         # search and check if = false then run
@@ -750,17 +751,18 @@ class MagentoBackend(models.Model):
             print("start fetch at " + str(datetime.datetime.now()))
             self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = TRUE WHERE id = %s""", (self.id,))
             self.env.cr.commit()
+            # try:
+            #     print(1)
+            #     self.fetch_products()
+            # except Exception as e:
+            #     print('1' + str(e))
+            # try:
+            #     print(3)
+            #     self.fetch_customers()
+            # except Exception as e:
+            #     print('3' + str(e))
             try:
-                print(1)
-                self.fetch_products()
-            except Exception as e:
-                print('1' + str(e))
-            try:
-                print(3)
-                self.fetch_customers()
-            except Exception as e:
-                print('3' + str(e))
-            try:
+                print('sale_order')
                 self.fetch_sale_orders()
             except Exception as e:
                 print('4' + str(e))
