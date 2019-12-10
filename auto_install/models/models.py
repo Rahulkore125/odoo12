@@ -20,6 +20,7 @@ class SaleOrder(models.Model):
         self.env.cr.execute("DELETE from account_move_line")
         self.env.cr.execute("DELETE from stock_inventory")
         self.env.cr.execute("DELETE from stock_picking")
+        self.env.cr.execute("DELETE from stock_return_picking")
         self.env.cr.execute("DELETE from stock_move")
         self.env.cr.execute("DELETE from stock_quant")
         self.env.cr.execute("DELETE  from product_template WHERE is_magento_product = True")
@@ -27,6 +28,8 @@ class SaleOrder(models.Model):
         self.env.cr.execute("DELETE from magento_pull_history WHERE name = 'categories'")
         self.env.cr.execute("DELETE from magento_product_attribute")
         self.env.cr.execute("DELETE from magento_product_category")
+
+
 
 
 
