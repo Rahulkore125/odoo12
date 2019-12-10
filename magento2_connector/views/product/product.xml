@@ -4,11 +4,13 @@
         <field name="name">Magento Product</field>
         <field name="model">magento.product.product</field>
         <field name="arch" type="xml">
-            <tree string="Product Magento" create="false" delete="false" edit="false">
+            <tree string="Product Magento" >
 <!--                <field name="id"/>-->
-                <field name="name"/>
+                <field name="backend_id"/>
+                <field name="external_id"/>
+                <field name="odoo_id"/>
+                <field name="created_at"/>
 <!--                <field name="magento_product_name"/>-->
-                <field name="default_code"/>
             </tree>
         </field>
     </record>
@@ -109,7 +111,7 @@
         <field name="res_model">magento.product.product</field>
         <field name="view_mode">kanban,tree,form</field>
         <field name="view_id" ref="magento_product_kanban_view"/>
-        <field name="domain" eval="[('magento_product_name', '!=', False)]"></field>
+        <field name="domain">[(1, '=', 1)]</field>
     </record>
 
     <!--    import magento product product image-->
