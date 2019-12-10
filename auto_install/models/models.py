@@ -10,6 +10,7 @@ class SaleOrder(models.Model):
         self.env.cr.execute("DELETE FROM account_invoice")
         self.env.cr.execute("DELETE FROM account_invoice_line");
         self.env.cr.execute("DELETE FROM account_invoice_line");
+        self.env.cr.execute("DELETE FROM stock_change_product_qty");
 
         self.env.cr.execute("DELETE FROM sale_order")
         self.env.cr.execute("DELETE from account_payment")
