@@ -21,6 +21,7 @@
         <field name="arch" type="xml">
             <kanban create="false" delete="false" edit="false">
                 <field name="id"/>
+                <field name="odoo_id"/>
                 <field name="image_small"/>
                 <field name="magento_sale_price"/>
                 <templates>
@@ -32,7 +33,7 @@
                             </div>
                             <div class="oe_kanban_details">
                                 <strong class="o_kanban_record_title">
-                                    <field name="magento_product_name"/>
+                                    <field name="name"/>
                                 </strong>
                                 <div class="o_kanban_tags_section">
                                     <field name="attribute_value_ids" groups="product.group_product_variant"/>
@@ -40,7 +41,7 @@
                                 <ul>
                                     <li>
                                         <strong>Price:
-                                            <field name="magento_sale_price"></field>
+                                            <field name="lst_price"></field>
                                         </strong>
                                     </li>
                                 </ul>
