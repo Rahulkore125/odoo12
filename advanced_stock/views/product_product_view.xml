@@ -11,7 +11,7 @@
                    <field name="display_deduct_parent_product" invisible="1"/>
                </xpath>
                <xpath expr="//field[@name='lst_price']" position="after">
-                   <field name="deduct_amount_parent_product"/>
+                   <field name="deduct_amount_parent_product" attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}"/>
                </xpath>
            </field>
        </record>
@@ -23,7 +23,8 @@
             <field name="inherit_id" ref="product.product_variant_easy_edit_view"/>
             <field name="arch" type="xml">
                 <xpath expr="//group[2]" position="after">
-                    <group string="Stock">
+                    <field name="display_deduct_parent_product" invisible="1"/>
+                    <group string="Stock"  attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}">
                         <field name="deduct_amount_parent_product"/>
                     </group>
                 </xpath>
