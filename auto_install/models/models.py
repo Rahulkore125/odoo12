@@ -20,6 +20,7 @@ class SaleOrder(models.Model):
         self.env.cr.execute("DELETE from account_move_line")
         self.env.cr.execute("DELETE from stock_inventory")
         self.env.cr.execute("DELETE from stock_picking")
+        self.env.cr.execute("DELETE from stock_scrap")
         self.env.cr.execute("DELETE from stock_return_picking")
         self.env.cr.execute("DELETE from stock_return_picking_line")
         self.env.cr.execute("DELETE from stock_move")
