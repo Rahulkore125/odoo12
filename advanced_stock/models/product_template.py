@@ -1,10 +1,20 @@
-from odoo import models, fields
+from odoo import models, fields,api
 
 
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
-    multiple_sku_one_stock = fields.Boolean("Manage Multiple Stock Variant by Flow Heineken")
+    multiple_sku_one_stock = fields.Boolean("Manage Multiple Stock Variant by Flow Heineken",default=False)
+    deduct_amount_parent_product = fields.Integer("Deductible amount of parent product when it be sold", default=1)
+    display_deduct_parent_product = fields.Boolean(compute='compute_display_deduct_parent_product', default=False,
+                                                   store=True)
+
+    @api.multi
+    @api.depends('multiple_sku_one_stock')
+    def compute_display_deduct_parent_product(self):
+        for rec in self:
+            if rec.multiple_sku_one_stock:
+                rec.display_deduct_parent_product = True
 
     def _compute_quantities_dict(self):
         # TDE FIXME: why not using directly the function fields ?
