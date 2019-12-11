@@ -4,10 +4,17 @@ from odoo import models, fields,api
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    # def get_default_lst_price(self):
+    #     return self.list_price
+
     multiple_sku_one_stock = fields.Boolean("Manage Multiple Stock Variant by Flow Heineken",default=False)
     deduct_amount_parent_product = fields.Integer("Deductible amount of parent product when it be sold", default=1)
     display_deduct_parent_product = fields.Boolean(compute='compute_display_deduct_parent_product', default=False,
                                                    store=True)
+
+    # lst_price = fields.Float(
+    #     'Public Price', readonly=False,
+    #     digits=dp.get_precision('Product Price'), default= lambda self: self.get_default_lst_price())
 
     @api.multi
     @api.depends('multiple_sku_one_stock')

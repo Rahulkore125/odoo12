@@ -305,6 +305,11 @@ class Order(Client):
                             'product_uom': 1,
                             'is_delivery': False}))
             # insert in sale_order with shipment
+
+            if order['payment']['method'] == 'eghlpayment':
+                payment_method = 'online_payment'
+            elif order['payment']['method'] == 'cashondelivery':
+                payment_method = 'cod'
             sale_orders.append({'name': name,
                                 'partner_id': partner_id,
                                 # 'partner_invoice_id': partner_invoice_id,

@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-       <!-- Inherit Form View to Modify it -->
-       <record id="product_product_view_inherit" model="ir.ui.view">
-           <field name="name">product_product_view_inherit</field>
-           <field name="model">product.product</field>
-           <field name="inherit_id" ref="product.product_normal_form_view"/>
-           <field name="arch" type="xml">
-               <xpath expr="//field[@name='categ_id']" position="after">
-                   <field name="display_deduct_parent_product" invisible="1"/>
-               </xpath>
-               <xpath expr="//field[@name='lst_price']" position="after">
-                   <field name="deduct_amount_parent_product" attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}"/>
-               </xpath>
-           </field>
-       </record>
+        <!-- Inherit Form View to Modify it -->
+        <record id="product_product_view_inherit" model="ir.ui.view">
+            <field name="name">product_product_view_inherit</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='categ_id']" position="after">
+                    <field name="display_deduct_parent_product" invisible="1"/>
+                </xpath>
+                <xpath expr="//field[@name='lst_price']" position="after">
+                    <field name="deduct_amount_parent_product"
+                           attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}"/>
+                </xpath>
+                <xpath expr="//field[@name='lst_price']" position="attributes">
+                    <attributes name="readonly">0</attributes>
+                </xpath>
+            </field>
+        </record>
 
         <!-- Inherit Form View to Modify it -->
         <record id="product_variant_easy_view" model="ir.ui.view">
@@ -24,11 +28,15 @@
             <field name="arch" type="xml">
                 <xpath expr="//group[2]" position="after">
                     <field name="display_deduct_parent_product" invisible="1"/>
-                    <group string="Stock"  attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}">
+                    <group string="Stock" attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}">
                         <field name="deduct_amount_parent_product"/>
                     </group>
                 </xpath>
-
+                <xpath expr="//field[@name='lst_price']" position="replace">
+                    <field name="list_price" position="attributes">
+                        <attribute name="name">lst_price</attribute>
+                    </field>
+                </xpath>
             </field>
         </record>
     </data>
