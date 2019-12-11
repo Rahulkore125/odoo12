@@ -310,6 +310,7 @@ class Order(Client):
                 payment_method = 'online_payment'
             elif order['payment']['method'] == 'cashondelivery':
                 payment_method = 'cod'
+            print(payment_method)
             sale_orders.append({'name': name,
                                 'partner_id': partner_id,
                                 # 'partner_invoice_id': partner_invoice_id,
@@ -322,6 +323,7 @@ class Order(Client):
                                 'carrier_id': carrier_id if carrier_id is not None else False,
                                 'is_magento_sale_order': True,
                                 'currency_id': currency,
+                                'payment_method': payment_method
                                 # 'note': ("Apply discount code:" + str(coupon_code)) if coupon_code != '' else None
                                 })
             # trường hợp address được add trên front end magento, sẽ được cập nhật khi có sale order ship tới địa chỉ này
