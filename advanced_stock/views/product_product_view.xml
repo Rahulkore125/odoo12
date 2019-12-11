@@ -32,11 +32,11 @@
                         <field name="deduct_amount_parent_product"/>
                     </group>
                 </xpath>
-                <xpath expr="//field[@name='lst_price']" position="replace">
-                    <field name="list_price" position="attributes">
-                        <attribute name="name">lst_price</attribute>
-                    </field>
-                </xpath>
+<!--                <xpath expr="//field[@name='lst_price']" position="replace">-->
+<!--                    <field name="list_price" position="attributes">-->
+<!--                        <attribute name="name">lst_price</attribute>-->
+<!--                    </field>-->
+<!--                </xpath>-->
             </field>
         </record>
     </data>
