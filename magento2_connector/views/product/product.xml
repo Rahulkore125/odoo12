@@ -41,7 +41,7 @@
                                 <ul>
                                     <li>
                                         <strong>Price:
-                                            <field name="lst_price"></field>
+                                            <field name="magento_sale_price"></field>
                                         </strong>
                                     </li>
                                 </ul>
