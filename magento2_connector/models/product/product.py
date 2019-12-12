@@ -12,7 +12,9 @@ class ProductProduct(models.Model):
     )
     magento_product_name = fields.Char('Magento Product Name', index=True, translate=True)
     is_magento_product = fields.Boolean("Is Magento Product")
+
     magento_sale_price = fields.Float(
         'Magento Sale Price',
         digits=dp.get_precision('Product Price'),
         help="The sale price is managed from the product template. Click on the 'Configure Variants' button to set the extra attribute prices.")
+

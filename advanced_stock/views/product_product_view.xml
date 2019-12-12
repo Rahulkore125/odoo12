@@ -10,13 +10,6 @@
                 <xpath expr="//field[@name='categ_id']" position="after">
                     <field name="display_deduct_parent_product" invisible="1"/>
                 </xpath>
-                <xpath expr="//field[@name='lst_price']" position="after">
-                    <field name="deduct_amount_parent_product"
-                           attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}"/>
-                </xpath>
-                <xpath expr="//field[@name='lst_price']" position="attributes">
-                    <attributes name="readonly">0</attributes>
-                </xpath>
             </field>
         </record>
 
@@ -32,11 +25,6 @@
                         <field name="deduct_amount_parent_product"/>
                     </group>
                 </xpath>
-<!--                <xpath expr="//field[@name='lst_price']" position="replace">-->
-<!--                    <field name="list_price" position="attributes">-->
-<!--                        <attribute name="name">lst_price</attribute>-->
-<!--                    </field>-->
-<!--                </xpath>-->
             </field>
         </record>
     </data>

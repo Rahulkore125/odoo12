@@ -53,16 +53,16 @@ class SaleOrder(models.Model):
     #     res = super(SaleOrder, self).create(vals_list)
     #     return res
 
-    @api.multi
-    @api.depends('order_line', 'estimate_discount_total')
-    def compute_discount_total(self):
-        for rec in self:
-            sum = 0
-            for e in rec.order_line:
-                if e.is_reward_line:
-                    sum += abs(e.price_subtotal)
-            sum += rec.estimate_discount_total
-            rec.computed_discount_total = sum
+    # @api.multi
+    # @api.depends('order_line', 'estimate_discount_total')
+    # def compute_discount_total(self):
+    #     for rec in self:
+    #         sum = 0
+    #         for e in rec.order_line:
+    #             if e.is_reward_line:
+    #                 sum += abs(e.price_subtotal)
+    #         sum += rec.estimate_discount_total
+    #         rec.computed_discount_total = sum
 
     @api.multi
     def action_confirm(self):

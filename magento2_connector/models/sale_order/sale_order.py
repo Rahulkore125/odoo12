@@ -31,6 +31,20 @@ class SaleOrder(models.Model):
     #     else:
     #         return super(SaleOrder, self).action_view_invoice()
 
+    @api.multi
+    @api.depends('order_line', 'estimate_discount_total')
+    def compute_discount_total(self):
+        for rec in self:
+            sum = 0
+            for e in rec.order_line:
+                if e.is_reward_line:
+                    sum += abs(e.price_subtotal)
+                print('dependes')
+                if e.product_id.id == self.env.ref('magento2_connector.discount_record').id:
+                    sum += abs(e.price_subtotal)
+            sum += rec.estimate_discount_total
+            rec.computed_discount_total = sum
+
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
