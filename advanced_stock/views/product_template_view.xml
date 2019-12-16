@@ -7,7 +7,7 @@
             <field name="inherit_id" ref="product.product_template_only_form_view"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='list_price']" position="after">
-                    <field name="product_variant_id"/>
+                    <field name="is_heineken_product"/>
                     <field name="multiple_sku_one_stock"/>
                     <field name="variant_manage_stock" attrs="{'invisible': [('multiple_sku_one_stock', '=', False)], 'required':[('multiple_sku_one_stock', '=', True)]}"
                            options="{'no_create_edit': True, }"/>

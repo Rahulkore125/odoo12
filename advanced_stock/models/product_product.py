@@ -12,7 +12,13 @@ class ProductProduct(models.Model):
     deduct_amount_parent_product = fields.Integer("Deductible amount of parent product when it be sold", default=1)
     display_deduct_parent_product = fields.Boolean(compute='compute_display_deduct_parent_product', default=False,
                                                    store=True)
+    is_heineken_product = fields.Boolean("Is Heineken Product", compute="_compute_is_heineken_product", store=True)
 
+    @api.multi
+    @api.depends('product_tmpl_id.is_heineken_product')
+    def _compute_is_heineken_product(self):
+        for rec in self:
+            rec.is_heineken_product = rec.product_tmpl_id.is_heineken_product
     @api.multi
     @api.depends('multiple_sku_one_stock')
     def compute_display_deduct_parent_product(self):

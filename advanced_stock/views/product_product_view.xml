@@ -11,6 +11,7 @@
                     <field name="display_deduct_parent_product" invisible="1"/>
                     <field name="deduct_amount_parent_product"
                            attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}"/>
+                    <field name="is_heineken_product"/>
                 </xpath>
                 <xpath expr="//button[@name='action_update_quantity_on_hand']" position="attributes">
                     <attribute name="invisible">[('display_deduct_parent_product', '=', True)]</attribute>
@@ -32,6 +33,7 @@
                     <field name="display_deduct_parent_product" invisible="1"/>
                     <group string="Stock" attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}">
                         <field name="deduct_amount_parent_product"/>
+                        <field name="is_heineken_product"/>
                     </group>
                 </xpath>
                 <xpath expr="//button[@name='action_update_quantity_on_hand']" position="attributes">

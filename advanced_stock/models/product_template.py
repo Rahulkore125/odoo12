@@ -10,14 +10,7 @@ class ProductTemplate(models.Model):
                                                    store=True)
     variant_manage_stock = fields.Many2one('product.product', domain="[('product_tmpl_id', '=', id)]",
                                            string="Variant Manage Stock")
-    # variant_compute = fields.Boolean(default=False)
-    origin_qty = fields.Float("Origin Qty", store=True)
-
-    # @api.multi
-    # @api.depends('variant_manage_stock')
-    # def compute_origin_qty(self):
-    #     for rec in self:
-    #         rec.origin_qty = rec.variant_manage_stock.quantity
+    is_heineken_product = fields.Boolean("Is Heineken Product", default=False)
 
     @api.depends('variant_manage_stock')
     def _compute_product_variant_id(self):
@@ -71,32 +64,5 @@ class ProductTemplate(models.Model):
                         "outgoing_qty": outgoing_qty,
                     }
 
-            # print(prod_available)
             template.origin_qty = qty_available
         return prod_available
-
-    # def _compute_quantities_dict(self):
-    #     # TDE FIXME: why not using directly the function fields ?
-    #     variants_available = self.mapped('product_variant_ids')._product_available()
-    #     prod_available = {}
-    #     for template in self:
-    #         qty_available = 0
-    #         virtual_available = 0
-    #         incoming_qty = 0
-    #         outgoing_qty = 0
-    #         # for p in template.variant_manage_stock:
-    #         qty_available += variants_available[template.variant_manage_stock.id][
-    #                              "qty_available"] * template.variant_manage_stock.deduct_amount_parent_product
-    #         virtual_available += variants_available[template.variant_manage_stock.id][
-    #                                  "virtual_available"] * template.variant_manage_stock.deduct_amount_parent_product
-    #         incoming_qty += variants_available[template.variant_manage_stock.id][
-    #                             "incoming_qty"] * template.variant_manage_stock.deduct_amount_parent_product
-    #         outgoing_qty += variants_available[template.variant_manage_stock.id][
-    #                             "outgoing_qty"] * template.variant_manage_stock.deduct_amount_parent_product
-    #         prod_available[template.id] = {
-    #             "qty_available": qty_available,
-    #             "virtual_available": virtual_available,
-    #             "incoming_qty": incoming_qty,
-    #             "outgoing_qty": outgoing_qty,
-    #         }
-    #     return prod_available
