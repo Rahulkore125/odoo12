@@ -9,7 +9,16 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='categ_id']" position="after">
                     <field name="display_deduct_parent_product" invisible="1"/>
+                    <field name="deduct_amount_parent_product"
+                           attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}"/>
                 </xpath>
+                <xpath expr="//button[@name='action_update_quantity_on_hand']" position="attributes">
+                    <attribute name="invisible">[('display_deduct_parent_product', '=', True)]</attribute>
+                </xpath>
+                <xpath expr="//button[@name='%(stock.action_product_replenish)d']" position="attributes">
+                     <attribute name="invisible">[('display_deduct_parent_product', '=', True)]</attribute>
+                </xpath>
+
             </field>
         </record>
 
@@ -24,6 +33,12 @@
                     <group string="Stock" attrs="{'invisible': [('display_deduct_parent_product', '=', False)]}">
                         <field name="deduct_amount_parent_product"/>
                     </group>
+                </xpath>
+                <xpath expr="//button[@name='action_update_quantity_on_hand']" position="attributes">
+                    <attribute name="invisible">[('display_deduct_parent_product', '=', True)]</attribute>
+                </xpath>
+                <xpath expr="//button[@name='%(stock.action_product_replenish)d']" position="attributes">
+                     <attribute name="invisible">[('display_deduct_parent_product', '=', True)]</attribute>
                 </xpath>
             </field>
         </record>
