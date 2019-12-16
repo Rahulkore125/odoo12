@@ -39,7 +39,7 @@ class SaleOrder(models.Model):
             for e in rec.order_line:
                 if e.is_reward_line:
                     sum += abs(e.price_subtotal)
-                print('dependes')
+                # print('dependes')
                 if e.product_id.id == self.env.ref('magento2_connector.discount_record').id:
                     sum += abs(e.price_subtotal)
             sum += rec.estimate_discount_total

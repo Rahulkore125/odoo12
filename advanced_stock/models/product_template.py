@@ -34,11 +34,6 @@ class ProductTemplate(models.Model):
     def _compute_quantities_dict(self):
         # TDE FIXME: why not using directly the function fields ?
         variants_available = self.mapped('product_variant_ids')._product_available()
-        # print(variants_available)
-
-
-        # print(variants_available)
-        # print(variants_available[68])
         prod_available = {}
         for template in self:
             qty_available = 0
