@@ -39,9 +39,9 @@ class SaleOrder(models.Model):
 
 
 
-        self.env.cr.execute("UPDATE magento_product_product SET odoo_id = 107 WHERE external_id = 244")
-        self.env.cr.execute("UPDATE magento_product_product SET odoo_id = 108 WHERE external_id = 245")
-
+        # self.env.cr.execute("UPDATE magento_product_product SET odoo_id = 107 WHERE external_id = 244")
+        # self.env.cr.execute("UPDATE magento_product_product SET odoo_id = 108 WHERE external_id = 245")
+        self.env.cr.execute("UPDATE product_template SET is_heineken_product = True WHERE is_magento_product = TRUE")
 
         # self.env.cr.execute("UPDATE product_product SET display_deduct_parent_product = TRUE WHERE id = 68")
         # self.env.cr.execute("UPDATE product_product SET display_deduct_parent_product = TRUE WHERE id = 69")
