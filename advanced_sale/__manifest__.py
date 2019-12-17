@@ -18,7 +18,7 @@
     'version': '2.0',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'sale', 'delivery', 'mail', 'stock', 'sales_team', 'uom', 'stock_account', 'sale_coupon'],
+    'depends': ['base', 'sale', 'delivery', 'mail', 'stock', 'sales_team', 'uom', 'stock_account', 'sale_coupon','advanced_stock'],
 
     # always loaded
     'data': [

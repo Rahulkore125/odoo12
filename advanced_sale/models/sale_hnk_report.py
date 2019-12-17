@@ -31,8 +31,8 @@ class SaleHnkReport(models.Model):
         # handle stock
         today_date = fields.Datetime.to_datetime(self.datetime_report)
         previous_day_date = fields.Datetime.to_datetime(self.datetime_report) + timedelta(days=-1)
-        all_product = self.env['product.product'].search([])
-        qty_previous_day = self.env['product.product'].browse(all_product.ids)._compute_quantities_dict(
+        heineken_product = self.env['product.product'].search([('is_heineken_product', '=', True)])
+        qty_previous_day = self.env['product.product'].browse(heineken_product.ids)._compute_quantities_dict(
             self._context.get('lot_id'),
             self._context.get(
                 'owner_id'),
@@ -41,7 +41,7 @@ class SaleHnkReport(models.Model):
             self._context.get(
                 'from_date'),
             to_date=previous_day_date)
-        qty_today = self.env['product.product'].browse(all_product.ids)._compute_quantities_dict(
+        qty_today = self.env['product.product'].browse(heineken_product.ids)._compute_quantities_dict(
             self._context.get('lot_id'),
             self._context.get(
                 'owner_id'),
@@ -190,9 +190,6 @@ class SaleHnkReport(models.Model):
                             'amount_lalafood_ol': sale_order_line.price_subtotal if sale_order.team_id.id == food_panda and sale_order.payment_method == 'online_payment' else 0,
                         }
 
-                # handle damaged, returned
-                # pickings = sale_order.picking_ids
-                # for picking in pickings:
         scrap = self.env['stock.scrap'].search([('date_scrap', '=', self.date_report)])
         for e in scrap:
             product_ids[e.product_id.id]['damaged'] += e.scrap_qty
@@ -202,14 +199,6 @@ class SaleHnkReport(models.Model):
             for f in e.move_ids_without_package:
                 if not f.scrapped:
                     product_ids[f.product_id.id]['returned'] += f.product_uom_qty
-
-        #         if not f.scrapped:
-        #             product_ids[f.product_id.id]['returned'] += f.product_uom_qty
-        # stock_moves = picking.move_ids_without_package
-        # if picking.is_return_picking:
-        #     for f in stock_moves:
-        #         if not f.scrapped:
-        #             product_ids[f.product_id.id]['returned'] += f.product_uom_qty
 
         self.env['sale.hnk.report.line'].search([]).unlink()
 
