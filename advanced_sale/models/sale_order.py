@@ -22,18 +22,14 @@ class SaleOrder(models.Model):
 
     currency_id = fields.Many2one('res.currency', readonly=True, default=lambda self: self.env.user.company_id.currency_id)
 
-    # @api.multi
-    # @api.depends('magento_bind_ids')
-    # def _compute_order_ref_id(self):
-    #     for rec in self:
-    #         if len(rec.magento_bind_ids) > 0:
-    #             for e in rec.magento_bind_ids:
-    #                 rec.order_reference_id = e.odoo_id.name
-
-    @api.depends('order_line.is_delivery')
+    @api.depends('picking_ids')
     def _compute_has_a_delivery(self):
         for order in self:
-            order.has_a_delivery = any(order.order_line.filtered('is_delivery'))
+            # order.has_a_delivery = any(order.order_line.filtered('is_delivery'))
+            if len(order.picking_ids) > 0:
+                order.has_a_delivery = True
+            else:
+                order.has_a_delivery = False
 
     @api.multi
     @api.depends('order_line')
