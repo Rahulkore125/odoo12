@@ -57,16 +57,26 @@ class StockMove(models.Model):
 class StockScrap(models.Model):
     _inherit = 'stock.scrap'
 
+    def _get_scrap_uom(self):
+        unit_measure = self.env.ref('uom.product_uom_unit').id
+        return unit_measure
+
     product_uom_id = fields.Many2one(
         'uom.uom', 'Unit of Measure',
-        required=True, states={'done': [('readonly', True)]}, domain=lambda self: self._get_domain_product_uom_id())
+        required=True, states={'done': [('readonly', True)]}, domain=lambda self: self._get_domain_product_uom_id(),
+        default=lambda self: self._get_scrap_uom())
     date_scrap = fields.Date()
+
+    @api.onchange('product_id')
+    def onchange_product_id(self):
+        if self.product_id:
+            pass
 
     @api.onchange('product_id')
     def _get_domain_product_uom_id(self):
         unit_measure = self.env.ref('uom.product_uom_unit').id
-        product_uom = self.product_id.uom_id.id
-        return {'domain': {'product_uom_id': [('id', 'in', [unit_measure, product_uom])]}}
+        # product_uom = self.product_id.uom_id.id
+        return {'domain': {'product_uom_id': [('id', 'in', [unit_measure])]}}
 
     def action_validate(self):
         self.date_scrap = date.today()
