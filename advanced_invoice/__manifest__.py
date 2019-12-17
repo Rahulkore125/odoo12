@@ -2,7 +2,7 @@
 {
     'name': "advanced_invoice",
 
-    'summary': """ Update flow invoice for flow of Drinkies """,
+    'summary': """Update sale flow according to flow of Drinkies""",
 
     'description': """
         Long description of module's purpose

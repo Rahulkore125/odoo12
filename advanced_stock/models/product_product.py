@@ -43,11 +43,13 @@ class ProductProduct(models.Model):
                     template_qty[product.product_tmpl_id.id][e] = res[e]
                     if product.id == product.product_tmpl_id.variant_manage_stock.id and product.product_tmpl_id.multiple_sku_one_stock:
                         template_qty[product.product_tmpl_id.id]['qty'] = res[e][
-
                                                                                   'qty_available'] * product.deduct_amount_parent_product
-            # print(template_qty)
+
+            print(template_qty)
+
             for f in template_qty:
                 template = self.env['product.template'].search([('id', '=', f)])
+                print(template.qty_available)
                 if template.multiple_sku_one_stock:
                     if 'qty' in template_qty[f]:
                         flag1 = True
@@ -55,34 +57,30 @@ class ProductProduct(models.Model):
                             if e != 'qty':
                                 product = self.env['product.product'].search([('id', '=', e)])
                                 total = template_qty[f][e]['qty_available'] * product.deduct_amount_parent_product
-                                print(template_qty[f]['qty'])
                                 if total != template_qty[f]['qty']:
                                     flag1 = False
                                     break
                         if not flag1:
                             variant_stock = self.env['product.product'].search([('id', '=', template.variant_manage_stock.id)]).id
-                            # print(variant_stock==e)
-                            # print(variant_stock)
-                            # print(e)
                             for g in template_qty[f]:
                                 if g != 'qty':
-                                    if template.qty_available == template_qty[f]['qty']:
+                                    if total > template_qty[f]['qty']:
                                         product = self.env['product.product'].search([('id', '=', g)])
                                         if template_qty[f][g]['qty_available'] * product.deduct_amount_parent_product == template_qty[f]['qty']:
-                                            res[g]['qty_available'] = total / product.deduct_amount_parent_product
+                                            res[g]['qty_available'] = template_qty[f]['qty'] / product.deduct_amount_parent_product
                                         inventory_wizard = self.env['stock.change.product.qty'].create({
                                                                 'product_id': g,
-                                                                'new_quantity': total/product.deduct_amount_parent_product,
+                                                                'new_quantity': template_qty[f]['qty'] /product.deduct_amount_parent_product,
                                                             })
                                         inventory_wizard.change_product_qty()
-                                    elif template.qty_available != template_qty[f]['qty']:
+                                    elif total < template_qty[f]['qty']:
                                         product = self.env['product.product'].search([('id', '=', g)])
                                         if template_qty[f][g]['qty_available'] * product.deduct_amount_parent_product == \
                                                 template_qty[f]['qty']:
                                             res[g]['qty_available'] = total / product.deduct_amount_parent_product
                                         inventory_wizard = self.env['stock.change.product.qty'].create({
                                             'product_id': g,
-                                            'new_quantity':   template_qty[f]['qty'] / product.deduct_amount_parent_product,
+                                            'new_quantity': total / product.deduct_amount_parent_product,
                                         })
                                         inventory_wizard.change_product_qty()
 

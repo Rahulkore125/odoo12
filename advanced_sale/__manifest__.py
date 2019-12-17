@@ -2,7 +2,7 @@
 {
     'name': "advanced_sale",
 
-    'summary': """Update flow sale for flow of Drinkies""",
+    'summary': """Update sale flow according to flow of Drinkies""",
 
     'description': """
         Long description of module's purpose
