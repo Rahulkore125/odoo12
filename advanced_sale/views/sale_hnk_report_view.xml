@@ -51,6 +51,9 @@
                     <field name="open_stock_units"/>
                     <field name="damaged"/>
                     <field name="returned"/>
+                     <field name="close_stock"/>
+                    <field name="close_stock_units"/>
+                    <field name="amount_discount"/>
                     <field name="sum_sale_chanel"/>
                     <field name="sum_fp_chanel"/>
                     <field name="sum_grab_chanel"/>
@@ -72,9 +75,6 @@
                     <field name="amount_lalafood_ol"/>
                     <field name="amount_grab_cod"/>
                     <field name="amount_grab_ol"/>
-                    <field name="close_stock"/>
-                    <field name="close_stock_units"/>
-                    <field name="amount_discount"/>
                 </tree>
             </field>
         </record>
