@@ -38,11 +38,15 @@ class StockReturnPicking(models.TransientModel):
         picking.is_return_picking = True
 
         picking.date_return = date.today()
+
         origin_picking = self.env['stock.picking'].search(
             [('sale_id', '=', picking.sale_id.id), ('is_return_picking', '=', False)])
         origin_picking.has_return_picking = True
         action = self.env['sale.order'].browse(picking.sale_id.id).action_view_delivery()
 
+        for e in picking.move_ids_without_package:
+            if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+                e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity + e.quantity_done * e.product_id.deduct_amount_parent_product
         return action
 
 
