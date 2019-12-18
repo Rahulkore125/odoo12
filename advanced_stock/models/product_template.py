@@ -11,6 +11,7 @@ class ProductTemplate(models.Model):
     variant_manage_stock = fields.Many2one('product.product', domain="[('product_tmpl_id', '=', id)]",
                                            string="Variant Manage Stock")
     is_heineken_product = fields.Boolean("Is Heineken Product", default=False)
+    origin_quantity = fields.Float(string="Origin Quantity", default=0)
 
     @api.depends('variant_manage_stock')
     def _compute_product_variant_id(self):
