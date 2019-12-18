@@ -119,7 +119,7 @@ class SaleOrderLine(models.Model):
                 if not e.is_reward_line and not e.is_delivery:
                     sum += e.price_subtotal
             if sum > 0:
-                each_line_order_discount = rec.order_id.estimate_discount_total / sum * 100
+                each_line_order_discount = rec.order_id.computed_discount_total / sum * 100
                 for e in rec.order_id.order_line:
                     if not e.is_reward_line and not e.is_delivery:
                         e.discount = each_line_order_discount
