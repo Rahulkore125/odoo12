@@ -20,7 +20,8 @@ class SaleOrder(models.Model):
         compute='_compute_has_a_delivery', string='Has delivery',
         help="Has an order line set for delivery", store=True)
 
-    currency_id = fields.Many2one('res.currency', readonly=True, default=lambda self: self.env.user.company_id.currency_id)
+    currency_id = fields.Many2one('res.currency', readonly=True,
+                                  default=lambda self: self.env.user.company_id.currency_id)
 
     @api.depends('picking_ids')
     def _compute_has_a_delivery(self):
@@ -71,6 +72,14 @@ class SaleOrder(models.Model):
                     move_line.quantity_done = move_line.product_uom_qty
                 stock_picking.action_done()
                 stock_picking.date_done_delivery = date.today()
+
+                if stock_picking.is_return_picking:
+                    pass
+                else:
+                    for e in stock_picking.move_ids_without_package:
+                        if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+                            e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity - e.quantity_done * e.product_id.deduct_amount_parent_product
+
         self.date_confirm_order = date.today()
         return result
 

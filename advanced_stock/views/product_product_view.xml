@@ -36,9 +36,9 @@
                         <field name="is_heineken_product"/>
                     </group>
                 </xpath>
-                <xpath expr="//button[@name='action_update_quantity_on_hand']" position="attributes">
-                    <attribute name="invisible">[('display_deduct_parent_product', '=', True)]</attribute>
-                </xpath>
+<!--                <xpath expr="//button[@name='action_update_quantity_on_hand']" position="attributes">-->
+<!--                    <attribute name="invisible">[('display_deduct_parent_product', '=', True)]</attribute>-->
+<!--                </xpath>-->
                 <xpath expr="//button[@name='%(stock.action_product_replenish)d']" position="attributes">
                      <attribute name="invisible">[('display_deduct_parent_product', '=', True)]</attribute>
                 </xpath>
