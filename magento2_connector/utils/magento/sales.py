@@ -1,6 +1,5 @@
 # -*- coding: UTF-8 -*-
 
-from odoo.http import request
 from .customer import get_state_id, get_country_id
 from ..magento.rest import Client
 
@@ -50,7 +49,8 @@ class Order(Client):
         if not default_magento_partner_odoo:
             website_list = context.env['magento.website'].sudo().search([('backend_id', '=', backend_id)])
             for website_item in website_list:
-                website_store_view = context.env['magento.storeview'].sudo().search([('backend_id', '=', backend_id), ('website_id', '=', website_item.id)])
+                website_store_view = context.env['magento.storeview'].sudo().search(
+                    [('backend_id', '=', backend_id), ('website_id', '=', website_item.id)])
                 for website_store_view_item in website_store_view:
                     new_magento_res_partner = context.env['magento.res.partner'].sudo().create({
                         'backend_id': backend_id,
@@ -110,6 +110,7 @@ class Order(Client):
                     partner_invoice_id = address_ids[0][0]
                     partner_shipping_id = address_ids[1][0]
             else:
+                customers = []
                 # init guest partner
                 if 'customer_id' in order:
                     context.env.cr.execute(
@@ -118,17 +119,87 @@ class Order(Client):
                     current_partner = context.env.cr.fetchone()
                     if current_partner and len(current_partner) > 0:
                         partner_id = current_partner[0]
-                # #
+                #
                 # partner_invoice_id = order['billing_address']['customer_address_id']
-                # partner_shipping_id = order['extension_attributes']['shipping_assignments'][0]['shipping']['address']['customer_address_id']
+                partner_shipping_id = order['extension_attributes']['shipping_assignments'][0]['shipping']['address'][
+                    'customer_address_id']
                 #
                 # # address invoice
-                # context.env.cr.execute("SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" %(order['customer_id'], partner_invoice_id, backend_id))
-                # partner_invoice_id = context.env.cr.fetchone()[0]
-                #
-                # # address shipping
-                # context.env.cr.execute("SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (order['customer_id'], partner_shipping_id,backend_id))
-                # partner_shipping_id = context.env.cr.fetchone()[0]
+                # b = context.env.cr.execute(
+                #     "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
+                #     order['customer_id'], partner_invoice_id, backend_id))
+                if 'customer_address_id' in order['billing_address']:
+                    b = context.env.cr.execute(
+                        "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
+                        order['customer_id'], order['billing_address']['customer_address_id'], backend_id))
+                    if b != None:
+                        partner_shipping_id = context.env.cr.fetchone()[0]
+                    else:
+                        billing_address = order['billing_address']
+                        if 'region' not in billing_address:
+                            billing_address['region'] = 0
+                        if 'region_code' not in billing_address:
+                            billing_address['region_code'] = 0
+                        billing_address_state_id = get_state_id(billing_address['region'],
+                                                                billing_address['region_code'],
+                                                                context)
+                        billing_address_country_id = get_country_id(billing_address['country_id'], context)
+                        billing_address_data = (
+                            billing_address['firstname'] + " " + billing_address['lastname'],
+                            billing_address['street'][0],
+                            billing_address['postcode'], billing_address['city'], billing_address_state_id,
+                            billing_address_country_id,
+                            billing_address['email'], billing_address['telephone'], True, 'invoice')
+                        customers.append(billing_address_data)
+
+                else:
+                    billing_address = order['billing_address']
+                    if 'region' not in billing_address:
+                        billing_address['region'] = 0
+                    if 'region_code' not in billing_address:
+                        billing_address['region_code'] = 0
+                    billing_address_state_id = get_state_id(billing_address['region'], billing_address['region_code'],
+                                                            context)
+                    billing_address_country_id = get_country_id(billing_address['country_id'], context)
+                    billing_address_data = (
+                        billing_address['firstname'] + " " + billing_address['lastname'], billing_address['street'][0],
+                        billing_address['postcode'], billing_address['city'], billing_address_state_id,
+                        billing_address_country_id,
+                        billing_address['email'], billing_address['telephone'], True, 'invoice')
+                    customers.append(billing_address_data)
+
+                # address shipping
+                c = context.env.cr.execute(
+                    "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
+                    order['customer_id'], partner_shipping_id, backend_id))
+                if c != None:
+                    partner_shipping_id = context.env.cr.fetchone()[0]
+                else:
+                    if 'address' in order['extension_attributes']['shipping_assignments'][0]['shipping']:
+                        shipping_address = order['extension_attributes']['shipping_assignments'][0]['shipping'][
+                            'address']
+                        if not 'region' in shipping_address:
+                            shipping_address['region'] = 0
+                        if not 'region_code' in shipping_address:
+                            shipping_address['region_code'] = 0
+                        shipping_address_state_id = get_state_id(shipping_address['region'],
+                                                                 shipping_address['region_code'],
+                                                                 context)
+                        shipping_address_country_id = get_country_id(shipping_address['country_id'], context)
+                        shipping_address_data = (
+                            shipping_address['firstname'] + " " + shipping_address['lastname'],
+                            shipping_address['street'][0],
+                            shipping_address['postcode'], shipping_address['city'], shipping_address_state_id,
+                            shipping_address_country_id, shipping_address['email'], shipping_address['telephone'], True,
+                            'delivery')
+                        customers.append(shipping_address_data)
+                context.env.cr.execute(
+                    """INSERT INTO res_partner (name, street,zip,city,state_id,country_id, email,phone, active,type) VALUES {values} RETURNING id""".format(
+                        values=", ".join(["%s"] * len(customers))), tuple(customers))
+
+                address_ids = context.env.cr.fetchall()
+                partner_invoice_id = address_ids[0][0]
+                partner_shipping_id = address_ids[1][0]
 
             name = prefix_order + order['increment_id']
             # product_id = order['items'][0]['item_id']
@@ -197,7 +268,6 @@ class Order(Client):
                             tax_percent_fix = tax_percent
                     product_id = product_item['product_id']
                     default_code = product_item['sku']
-
 
                     context.env.cr.execute("""
                                                    SELECT * FROM combine_id({backend_id},{amount},'{default_code}',{external_id})""".
@@ -311,10 +381,17 @@ class Order(Client):
             elif order['payment']['method'] == 'cashondelivery':
                 payment_method = 'cod'
             print(payment_method)
+            if partner_id == context.env.ref('magento2_connector.create_customer_guest').id:
+                old_partner = context.env['res.partner'].search([('email', '=', order['customer_email']), ('type', '=', 'contact')])
+                if len(old_partner) > 0:
+                    partner_id = old_partner.id
+                else:
+                    partner_id = partner_invoice_id
+            print(partner_id)
             sale_orders.append({'name': name,
                                 'partner_id': partner_id,
-                                # 'partner_invoice_id': partner_invoice_id,
-                                # 'partner_shipping_id': partner_shipping_id,
+                                'partner_invoice_id': partner_invoice_id,
+                                'partner_shipping_id': partner_shipping_id,
                                 'pricelist_id': product_price_list_id,
                                 'state': 'draft',
                                 'confirmation_date': confirmation_date,
@@ -440,14 +517,12 @@ class Order(Client):
                 e.action_confirm()
                 sale_order_ids.append((e.id,))
 
-
             magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
             if magento_sale_orders and len(magento_sale_orders) > 0:
                 context.env.cr.execute(
                     """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
                         values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
                     tuple(magento_sale_orders_mapped_id))
-
 
     # def import_shipment_on_sale_order(self, external_sale_order_id, shipment_product, backend_id, context=None):
     #     product_order_line_id = []

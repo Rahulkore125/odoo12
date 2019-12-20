@@ -761,11 +761,11 @@ class MagentoBackend(models.Model):
             #     self.fetch_customers()
             # except Exception as e:
             #     print('3' + str(e))
-            try:
-                print('sale_order')
-                self.fetch_sale_orders()
-            except Exception as e:
-                print('4' + str(e))
+            # try:
+            print('sale_order')
+            self.fetch_sale_orders()
+            # except Exception as e:
+            # print('4' + str(e))
             self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = FALSE WHERE id = %s""", (self.id,))
             self.env.cr.commit()
             print("end fetch at " + str(datetime.datetime.now()))
