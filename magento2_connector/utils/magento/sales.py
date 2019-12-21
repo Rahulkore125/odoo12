@@ -235,6 +235,7 @@ class Order(Client):
                     state = order['state']
                 else:
                     state = 'N/A'
+
                 # get shipment_amount and shipment_method
                 shipment_amount = order['extension_attributes']['shipping_assignments'][0]['shipping']['total'][
                     'shipping_amount']
@@ -392,7 +393,7 @@ class Order(Client):
                                     'partner_invoice_id': partner_invoice_id,
                                     'partner_shipping_id': partner_shipping_id,
                                     'pricelist_id': product_price_list_id,
-                                    'state': 'draft',
+                                    # 'state': status,
                                     'confirmation_date': confirmation_date,
                                     'order_line': order_lines if len(order_lines) > 0 else '',
                                     'has_delivery': True if shipment_method else '',
@@ -511,9 +512,11 @@ class Order(Client):
                 # for e in sale_orders:
                 res = context.env['sale.order'].sudo().create(sale_orders)
                 for e in res:
+                    context.env.cr.execute(
+                        """UPDATE sale_order SET state = %s WHERE id = %s""",(str(status), e.id))
                     e.order_reference_id = e.name
                     e.team_id = drinkies_sale_team
-                    e.action_confirm()
+                    # e.action_confirm()
                     sale_order_ids.append((e.id,))
 
                 magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
