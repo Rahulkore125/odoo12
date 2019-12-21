@@ -8,6 +8,7 @@ from ...utils.magento.customer import Customer, CustomerGroup
 from ...utils.magento.product import Product
 from ...utils.magento.rest import Client
 from ...utils.magento.sales import Order
+from ...utils.magento.invoice import Invoice
 
 TYPE2JOURNAL = {
     'out_invoice': 'sale',
@@ -31,22 +32,22 @@ def get_current_page(total_count, page_size):
 
 class MagentoBackend(models.Model):
 
-    # @api.model
-    # def _default_journal(self):
-    #     if self._context.get('default_journal_id', False):
-    #         return self.env['account.journal'].browse(self._context.get('default_journal_id'))
-    #     inv_type = self._context.get('type', 'out_invoice')
-    #     inv_types = inv_type if isinstance(inv_type, list) else [inv_type]
-    #     company_id = self._context.get('company_id', self.env.user.company_id.id)
-    #     domain = [
-    #         ('type', 'in', [TYPE2JOURNAL[ty] for ty in inv_types if ty in TYPE2JOURNAL]),
-    #         ('company_id', '=', company_id),
-    #     ]
-    #     journal_with_currency = False
-    #     if self._context.get('default_currency_id'):
-    #         currency_clause = [('currency_id', '=', self._context.get('default_currency_id'))]
-    #         journal_with_currency = self.env['account.journal'].search(domain + currency_clause, limit=1)
-    #     return journal_with_currency or self.env['account.journal'].search(domain, limit=1)
+    @api.model
+    def _default_journal(self):
+        if self._context.get('default_journal_id', False):
+            return self.env['account.journal'].browse(self._context.get('default_journal_id'))
+        inv_type = self._context.get('type', 'out_invoice')
+        inv_types = inv_type if isinstance(inv_type, list) else [inv_type]
+        company_id = self._context.get('company_id', self.env.user.company_id.id)
+        domain = [
+            ('type', 'in', [TYPE2JOURNAL[ty] for ty in inv_types if ty in TYPE2JOURNAL]),
+            ('company_id', '=', company_id),
+        ]
+        journal_with_currency = False
+        if self._context.get('default_currency_id'):
+            currency_clause = [('currency_id', '=', self._context.get('default_currency_id'))]
+            journal_with_currency = self.env['account.journal'].search(domain + currency_clause, limit=1)
+        return journal_with_currency or self.env['account.journal'].search(domain, limit=1)
 
     _name = "magento.backend"
 
@@ -68,10 +69,10 @@ class MagentoBackend(models.Model):
     website_ids = fields.One2many('magento.website', 'backend_id', string='Website', readonly=True, )
 
     # Invoice
-    # payment_journal = fields.Many2one('account.journal', string='Payment Journal', required=True,
-    #                                   domain=[('type', 'in', ('bank', 'cash'))])
-    # journal_id = fields.Many2one('account.journal', string='Journal', required=True, domain=[('type', '=', 'sale')])
-    # prefix_invoice = fields.Char('Prefix Invoice')
+    payment_journal = fields.Many2one('account.journal', string='Payment Journal', required=True,
+                                      domain=[('type', 'in', ('bank', 'cash'))])
+    journal_id = fields.Many2one('account.journal', string='Journal', required=True, domain=[('type', '=', 'sale')])
+    prefix_invoice = fields.Char('Prefix Invoice')
     prefix_order = fields.Char('Prefix Order')
     # Page Size
     products_pageSize = fields.Integer(string='Products page size', required=True, default=500)
@@ -263,6 +264,7 @@ class MagentoBackend(models.Model):
                                 DELETE FROM sale_order WHERE TRUE;
                                 DELETE FROM magento_account_invoice WHERE TRUE;
                                 DELETE FROM magento_backend WHERE TRUE;
+                                DELETE FROM magento_account_invoice WHERE TRUE;
                                 DELETE FROM res_partner WHERE id > 50;
                                 DELETE FROM magento_storeview WHERE TRUE;
                                 DELETE FROM magento_store WHERE TRUE;
@@ -575,14 +577,14 @@ class MagentoBackend(models.Model):
                 current_page = 0
                 pull_history = self.env['magento.pull.history'].search(
                     [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
-                print(pull_history)
+
 
                 if pull_history:
                     # second pull
                     sync_date = pull_history.sync_date
-                    print(sync_date)
+
                     orders = order.list_gt_updated_at(sync_date)
-                    print(orders)
+
                     if len(orders['items']) > 0:
                         pull_history.write({
                             'sync_date': datetime.datetime.today()
@@ -654,6 +656,110 @@ class MagentoBackend(models.Model):
                 'target': 'new',
                 'context': {
                     'default_message': "Sale orders are fetching by schedule action, you can fetch sale orders manually after schedule action finish"
+                },
+            }
+
+    def fetch_invoice(self):
+        if not self.auto_fetching:
+            if not self.id:
+                self = self.env['magento.backend'].search([], limit=1)
+            self.fetch_sale_orders()
+            self.fetch_tax()
+            #
+            backend_id = self.id
+            if not backend_id:
+                first_backend = self.env['magento.backend'].search([], limit=1)
+                if first_backend.id:
+                    backend_id = first_backend.id
+            url = self.web_url
+            token = self.access_token
+            prefix = self.prefix_invoice
+            if not prefix:
+                prefix = 'INV/Magento/' + str(backend_id) + '/'
+            else:
+                prefix = prefix + '/'
+            journal_id = self.journal_id.id
+            payment_journal = self.payment_journal.id
+
+            # copy
+            # page_size = self.invoice_pageSize
+            invoices = Invoice(url, token, True)
+            page_size = self.invoice_pageSize
+            # if page_size > 0:
+            #     current_page = 0
+            #     pull_history = self.env['magento.pull.history'].search(
+            #         [('backend_id', '=', backend_id), ('name', '=', 'invoice')])
+            #
+            #     if pull_history:
+            #         # second pull
+            #         sync_date = pull_history.sync_date
+            #         invoice = invoices.list_gt_updated_at(sync_date)
+            #         pull_history.write({
+            #             'sync_date': datetime.datetime.today()
+            #         })
+            #     else:
+            #         # first pull
+            #         self.env['magento.pull.history'].create({
+            #             'name': 'invoice',
+            #             'sync_date': datetime.datetime.today(),
+            #             'backend_id': backend_id
+            #         })
+            #         invoice = invoices.list(page_size, current_page)
+            #
+            #     total_amount = invoice['total_count']
+            #     invoices.importer_invoice(invoice['items'], backend_id, prefix, journal_id, payment_journal, context=self)
+            #     total_page = total_amount / page_size
+            #
+            #     if 0 < total_page < 1:
+            #         total_page = 1
+            #     else:
+            #         total_page = math.ceil(total_page)
+            #
+            #     total_page = 1
+            #     for page in range(1, total_page):
+            #         invoice = invoices.list(page_size, page + 1)
+            #         invoices.importer_invoice(invoice['items'], backend_id, prefix, journal_id, payment_journal, context=self)
+            pull_history = self.env['magento.pull.history'].search(
+                [('backend_id', '=', backend_id), ('name', '=', 'invoice')])
+            if pull_history:
+                # second pull
+                sync_date = pull_history.sync_date
+                invoice = invoices.list_gt_updated_at(sync_date)
+                print(invoice)
+                if len(invoice['items']) > 0:
+                    pull_history.write({
+                        'sync_date': datetime.datetime.today()
+                    })
+
+            else:
+                # first pull
+                self.env['magento.pull.history'].create({
+                    'name': 'invoice',
+                    'sync_date': datetime.datetime.today(),
+                    'backend_id': backend_id
+                })
+                invoice = invoices.list_all()
+
+            invoices.importer_invoice(invoice['items'], backend_id, prefix, journal_id, payment_journal, context=self)
+            return {
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'popup.dialog',
+                'target': 'new',
+                'context': {
+                    'default_message': "Fetch invoices successful"
+                },
+            }
+        else:
+            return {
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'popup.dialog',
+                'target': 'new',
+                'context': {
+                    'default_message': "Invoices are fetching by schedule action, you can fetch invoices manually after schedule action finish"
                 },
             }
 
