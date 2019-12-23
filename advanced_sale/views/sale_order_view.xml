@@ -5,7 +5,7 @@
         <record id="sale_order_form_inherit" model="ir.ui.view">
             <field name="name">Sale Order Form Inherit</field>
             <field name="model">sale.order</field>
-            <field name="priority" eval="30"/>
+            <field name="priority" eval="2000"/>
             <field name="inherit_id" ref="delivery.view_order_form_with_carrier"/>
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='validity_date']" position="attributes">
