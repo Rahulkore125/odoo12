@@ -26,6 +26,14 @@ class Order(Client):
                          'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
                                                                                                     'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
 
+    def list_order_cancel_updated(self, updated_at):
+        return self.call('rest/V1/orders',
+                         'searchCriteria[filter_groups][0][filters][0][field]=updated_at&'
+                         'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
+                                                                                                    'searchCriteria[filter_groups][0][filters][0][condition_type]=gt'
+                         +'&searchCriteria[filter_groups][0][filters][1][field]=status&' + 'searchCriteria[filter_groups][0][filters][1][value]=cancel' +
+                         '&searchCriteria[filter_groups][0][filters][1][condition_type]=eq')
+
     def list_gt_update_at_shipment(self, updated_at):
 
         return self.call('rest/V1/shipments',
