@@ -119,6 +119,7 @@ class Invoice(Client):
                     """SELECT partner_id FROM sale_order WHERE id in (SELECT odoo_id FROM magento_sale_order WHERE external_id = %s AND backend_id = %s )""",
                     (order_id, backend_id))
                 partner_id_found = context.env.cr.fetchone()
+                print(partner_id_found)
                 if partner_id_found:
                     partner_id = partner_id_found[0]
                     product_items = invoice['items']
@@ -183,14 +184,14 @@ class Invoice(Client):
                             else:
                                 product_id = context.env.ref('magento2_connector.magento_sample_product_service').id
                             invoice_line.append(
-                                (0, 0, {'name': product_item['name'], 'account_id': 1, 'product_id': product_id,
+                                (0, 0, {'name': product_item['name'], 'account_id': 18, 'product_id': product_id,
                                         'quantity': quantity,
                                         'price_unit': price, }))
                             list_name_product.append(product_item['name'])
                             # 'invoice_line_tax_ids': [(4, account_tax_id) if account_tax_id != '' else '']}))
                     if shipping_amount > 0:
                         if sale_order_of_invoice.carrier_id.id:
-                            invoice_line.append((0, 0, {'name': rec_product_ship_method.name, 'account_id': 1,
+                            invoice_line.append((0, 0, {'name': rec_product_ship_method.name, 'account_id': 18,
                                                         'product_id': rec_product_ship_method.id,
                                                         'quantity': 1,
                                                         'price_unit': shipping_amount, }))
@@ -200,7 +201,7 @@ class Invoice(Client):
                         tax_real_product_id = context.env.ref('magento2_connector.tax_real')
                         tax_fake_product_id = context.env.ref('magento2_connector.tax_fake')
                         tax_percent_id = context.env.ref('magento2_connector.tax_100')
-                        invoice_line.append((0, 0, {'name': "Tax real", 'account_id': 1,
+                        invoice_line.append((0, 0, {'name': "Tax real", 'account_id': 18,
                                                     'product_id': tax_real_product_id.id,
                                                     'quantity': 1,
                                                     'name': str(list_name_product),
@@ -208,7 +209,7 @@ class Invoice(Client):
                                                     'invoice_line_tax_ids': [(4, tax_percent_id.id)]}))
                         invoice_line.append(
                             (0, 0, {'name': "To keep correct amount on Tax (for Accounting) and grant total",
-                                    'account_id': 1,
+                                    'account_id': 18,
                                     'product_id': tax_fake_product_id.id,
                                     'quantity': 1,
                                     'price_unit': -float(origin_tax_amount), }))
@@ -216,7 +217,7 @@ class Invoice(Client):
                         discount_amount = invoice['discount_amount']
                         discount_code = invoice['discount_description']
                         invoice_line_discount = context.env.ref('magento2_connector.discount_record')
-                        invoice_line.append((0, 0, {'name': "Discount", 'account_id': 1,
+                        invoice_line.append((0, 0, {'name': "Discount", 'account_id': 18,
                                                     'product_id': invoice_line_discount.id,
                                                     'quantity': 1,
                                                     'name': "Discount when use code " + str(discount_code),
@@ -238,6 +239,7 @@ class Invoice(Client):
                     })
 
                     array_magento_invoices.append((invoice_id, backend_id, state))
+                    print(array_magento_invoices)
                 else:
                     print('cant find customer for magento sale order ' + str(order_id))
 
@@ -247,7 +249,7 @@ class Invoice(Client):
             print('cccccccc')
             invoices = context.env['account.invoice'].sudo().create(array_odoo_invoices)
             invoice_ids = []
-
+            print(invoices)
             # insert invoice in magento_account_invoice
             for invoice in invoices:
                 invoice.action_move_create()

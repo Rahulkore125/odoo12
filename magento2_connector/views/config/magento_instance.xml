@@ -30,6 +30,8 @@
                             sequence="5"/>
                     <button name="fetch_sale_orders" type="object" string="Fetch Sale Orders" class="btn-primary"
                             sequence="6"/>
+                     <button name="fetch_shipments" type="object" string="Fetch Shipments" class="btn-primary"
+                            sequence="7"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
