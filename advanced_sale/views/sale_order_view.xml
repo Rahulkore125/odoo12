@@ -86,6 +86,12 @@
                         <field name="shipper"/>
                     </div>
                 </xpath>
+                <xpath expr="//field[@name='partner_invoice_id']" position="attributes">
+                    <attribute name="context">{'default_type':'invoice', 'show_address': 1}</attribute>
+                </xpath>
+                <xpath expr="//field[@name='partner_shipping_id']" position="attributes">
+                    <attribute name="context">{'default_type':'delivery', 'show_address': 1}</attribute>
+                </xpath>
             </field>
         </record>
 
