@@ -92,6 +92,9 @@
                 <xpath expr="//field[@name='partner_shipping_id']" position="attributes">
                     <attribute name="context">{'default_type':'delivery', 'show_address': 1}</attribute>
                 </xpath>
+                <xpath expr="//field[@name='sale_order_template_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
             </field>
         </record>
 
