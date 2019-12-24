@@ -3,12 +3,13 @@ import datetime
 import math
 
 from odoo import models, fields, api
-from odoo.exceptions import ValidationError,UserError
+from odoo import tools, _
+from odoo.exceptions import ValidationError, UserError
 from ...utils.magento.customer import Customer, CustomerGroup
+from ...utils.magento.invoice import Invoice
 from ...utils.magento.product import Product
 from ...utils.magento.rest import Client
 from ...utils.magento.sales import Order
-from ...utils.magento.invoice import Invoice
 
 TYPE2JOURNAL = {
     'out_invoice': 'sale',
@@ -615,68 +616,102 @@ class MagentoBackend(models.Model):
                 # # for page in range(1, total_page):
                 # orders = order.list(page_size, 1)
                 # order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
+            return {
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'popup.dialog',
+                'target': 'new',
+                'context': {
+                    'default_message': "Fetch sale orders successful"
+                },
+            }
+        else:
+            return {
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'popup.dialog',
+                'target': 'new',
+                'context': {
+                    'default_message': "Sale Orders are fetching by schedule action, you can fetch sale orders manually after schedule action finish"
+                },
+            }
 
     def fetch_shipments(self):
         if not self.auto_fetching:
-            # if not self.id:
-            #     self = self.env['magento.backend'].search([], limit=1)
-            # self.fetch_sale_orders()
-            # self.fetch_tax()
-            #
+            if not self.id:
+                self = self.env['magento.backend'].search([], limit=1)
+            self.fetch_sale_orders()
+            self.fetch_tax()
+
+            backend_name = self.name
             backend_id = self.id
             if not backend_id:
                 first_backend = self.env['magento.backend'].search([], limit=1)
                 if first_backend.id:
                     backend_id = first_backend.id
-        url = self.web_url
-        token = self.access_token
-        order = Order(url, token, True)
+            url = self.web_url
+            token = self.access_token
+            order = Order(url, token, True)
 
-        # sync shipments
-        pull_shipments_history = self.env['magento.pull.history'].search(
-            [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
-        if pull_shipments_history:
-            # second pull
-            sync_date = pull_shipments_history.sync_date
-            # shipments = order.list_gt_update_at_shipment(sync_date)
-            # order.import_shipment(shipments, backend_id, context=self)
-            # if len(shipments) > 0:
-            #     pull_shipments_history.write({
-            #         'sync_date': datetime.datetime.today()
-            #     })
-            order_cancel = order.list_order_cancel_updated(updated_at=sync_date)
-            print(order_cancel)
+            # sync shipments
+            pull_shipments_history = self.env['magento.pull.history'].search(
+                [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
+            if pull_shipments_history:
+                # second pull
+                sync_date = pull_shipments_history.sync_date
+                shipments = order.list_gt_update_at_shipment(sync_date)
+                order.import_shipment(shipments, backend_id, context=self)
+                if len(shipments) > 0:
+                    pull_shipments_history.write({
+                        'sync_date': datetime.datetime.today()
+                    })
+                order_cancel = order.list_order_cancel_updated(updated_at=sync_date)
+                print(order_cancel)
+            else:
+                # first pull
+                shipments = order.listShipment()
+                self.env['magento.pull.history'].create({
+                    'name': 'shipments',
+                    'sync_date': datetime.datetime.today(),
+                    'backend_id': backend_id
+                })
+                order.import_shipment(shipments, backend_id, context=self)
+
+            # total_amount = orders['total_count']
+            # order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
+            # total_page = total_amount / page_size
+            #
+            # if 0 < total_page < 1:
+            #     total_page = 1
+            # else:
+            #     total_page = math.ceil(total_page)
+            #
+            # for page in range(1, total_page):
+            #     orders = order.list(page_size, page + 1)
+            #     order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
+            return {
+                    'type': 'ir.actions.act_window',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'popup.dialog',
+                    'target': 'new',
+                    'context': {
+                        'default_message': "Fetch shipments successful"
+                    },
+                }
         else:
-            # first pull
-            # shipments = order.listShipment()
-            # self.env['magento.pull.history'].create({
-            #     'name': 'shipments',
-            #     'sync_date': datetime.datetime.today(),
-            #     'backend_id': backend_id
-            # })
-            # order.import_shipment(shipments, backend_id, context=self)
-            pass
-        #     return {
-        #         'type': 'ir.actions.act_window',
-        #         'view_type': 'form',
-        #         'view_mode': 'form',
-        #         'res_model': 'popup.dialog',
-        #         'target': 'new',
-        #         'context': {
-        #             'default_message': "Fetch sale orders successful"
-        #         },
-        #     }
-        # else:
-        #     return {
-        #         'type': 'ir.actions.act_window',
-        #         'view_type': 'form',
-        #         'view_mode': 'form',
-        #         'res_model': 'popup.dialog',
-        #         'target': 'new',
-        #         'context': {
-        #             'default_message': "Sale orders are fetching by schedule action, you can fetch sale orders manually after schedule action finish"
-        #         },
-        #     }
+            return {
+                    'type': 'ir.actions.act_window',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'popup.dialog',
+                    'target': 'new',
+                    'context': {
+                        'default_message': "Shipments are fetching by schedule action, you can fetch sale orders manually after schedule action finish"
+                    },
+                }
 
 
 
