@@ -607,18 +607,42 @@ class Order(Client):
                         if product_shipment_id in product_order_line_id:
                             stock_move_line = context.env['stock.move.line'].search(
                                 [('picking_id', '=', stock_picking_id), ('product_id', '=', product_shipment_id)])
-                            stock_move_line.write({
-                                'qty_done': e[1]
-                            })
+                            if len(stock_move_line) > 0:
+                                stock_move_line.write({
+                                    'qty_done': e[1]
+                                })
+                            else:
+                                stock_move = context.env['stock.move'].search(
+                                    [('picking_id', '=', stock_picking_id), ('product_id', '=', product_shipment_id)])
+                                context.env['stock.move.line'].create({
+                                    'picking_id': stock_move.picking_id.id,
+                                    'location_id': stock_move.location_id.id,
+                                    'location_dest_id': stock_move.location_dest_id.id,
+                                    'product_id': stock_move.product_id.id,
+                                    'qty_done': e[1],
+                                    'move_id': stock_move.id,
+                                    'product_uom_id': stock_move.product_uom.id
+                                })
                     else:
                         product_shipment_id = None
 
                         if product_shipment_id in product_order_line_id:
-                            stock_move_line = context.env['stock.move.line'].search(
-                                [('picking_id', '=', stock_picking_id), ('product_id', '=', product_shipment_id)])
-                            stock_move_line.write({
-                                'qty_done': e[1]
-                            })
+                            if len(stock_move_line) > 0:
+                                stock_move_line.write({
+                                    'qty_done': e[1]
+                                })
+                            else:
+                                stock_move = context.env['stock.move'].search(
+                                    [('picking_id', '=', stock_picking_id), ('product_id', '=', product_shipment_id)])
+                                context.env['stock.move.line'].create({
+                                    'picking_id': stock_move.picking_id.id,
+                                    'location_id': stock_move.location_id.id,
+                                    'location_dest_id': stock_move.location_dest_id.id,
+                                    'product_id': stock_move.product_id.id,
+                                    'qty_done': e[1],
+                                    'move_id': stock_move.id,
+                                    'product_uom_id': stock_move.product_uom.id
+                                })
                 context.env['stock.picking'].sudo().browse(stock_picking_id).action_done()
 
                 if magento_sale_order.state == 'complete':
