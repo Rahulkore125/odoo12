@@ -17,6 +17,7 @@ class StockReturnPicking(models.TransientModel):
 
     def create_returns(self):
         for wizard in self:
+            print(wizard)
             new_picking_id, pick_type_id = super(StockReturnPicking, wizard)._create_returns()
             # Override the context to disable all the potential filters that could have been set previously
         ctx = dict(self.env.context)
@@ -40,7 +41,7 @@ class StockReturnPicking(models.TransientModel):
         picking.date_return = date.today()
 
         origin_picking = self.env['stock.picking'].search(
-            [('sale_id', '=', picking.sale_id.id), ('is_return_picking', '=', False)])
+            [('id', '=', wizard.picking_id.id)])
         origin_picking.has_return_picking = True
         action = self.env['sale.order'].browse(picking.sale_id.id).action_view_delivery()
 

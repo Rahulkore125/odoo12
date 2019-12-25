@@ -268,23 +268,24 @@ class Invoice(Client):
                     [('odoo_id', '=', invoice.id), ('backend_id', '=', backend_id)])
                 if magento_invoice.state == 'paid':
                     # update invoice to open and re-paid
-                    invoice.update({
-                        'state': 'open'
-                    })
-                    # dien journal id da config trong magento backend
-                    account_payment = context.env['account.payment'].sudo().create({
-                        'amount': invoice.amount_total,
-                        'currency_id': invoice.currency_id.id,
-                        'payment_date': invoice.date,
-                        'journal_id': payment_journal,
-                        'communication': invoice.number,
-                        'invoice_ids': [(6, 0, [invoice.id])],
-                        'payment_method_id': context.env.ref('payment.account_payment_method_electronic_in').id,
-                        'payment_type': 'inbound',
-                        'partner_type': 'customer',
-                        'partner_id': invoice.partner_id.id,
-                    })
-                    context.env['account.payment'].sudo().browse(account_payment.id).action_validate_invoice_payment()
+                    # invoice.update({
+                    #     'state': 'open'
+                    # })
+                    # # dien journal id da config trong magento backend
+                    # account_payment = context.env['account.payment'].sudo().create({
+                    #     'amount': invoice.amount_total,
+                    #     'currency_id': invoice.currency_id.id,
+                    #     'payment_date': invoice.date,
+                    #     'journal_id': payment_journal,
+                    #     'communication': invoice.number,
+                    #     'invoice_ids': [(6, 0, [invoice.id])],
+                    #     'payment_method_id': context.env.ref('payment.account_payment_method_electronic_in').id,
+                    #     'payment_type': 'inbound',
+                    #     'partner_type': 'customer',
+                    #     'partner_id': invoice.partner_id.id,
+                    # })
+                    # context.env['account.payment'].sudo().browse(account_payment.id).action_validate_invoice_payment()
+                    pass
                 elif magento_invoice.state == 'cancel':
                     context.env.cr.execute("""UPDATE account_invoice SET state = %s WHERE id = %s """,
                                            ('cancel', magento_invoice.odoo_id.ids[0]))

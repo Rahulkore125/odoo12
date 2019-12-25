@@ -19,23 +19,27 @@ class Order(Client):
     def listShipment(self):
         return self.call('rest/V1/shipments', 'searchCriteria')
 
-    def list_gt_updated_at(self, updated_at):
+    def list_gt_created_at_after_sync(self, created_at):
 
         return self.call('rest/V1/orders',
                          'searchCriteria[filter_groups][0][filters][0][field]=created_at&'
-                         'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
+                         'searchCriteria[filter_groups][0][filters][0][value]=' + str(created_at) + '&'
                                                                                                     'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
 
-    def list_order_cancel_updated(self, updated_at):
+    def list_order_updated_at_after_sync(self, updated_at):
         return self.call('rest/V1/orders',
                          'searchCriteria[filter_groups][0][filters][0][field]=updated_at&'
                          'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
                                                                                                     'searchCriteria[filter_groups][0][filters][0][condition_type]=gt'
-                         +'&searchCriteria[filter_groups][0][filters][1][field]=status&' + 'searchCriteria[filter_groups][0][filters][1][value]=cancel' +
-                         '&searchCriteria[filter_groups][0][filters][1][condition_type]=eq')
+                         +'&searchCriteria[filter_groups][0][filters][1][field]=created_at&'
+                         'searchCriteria[filter_groups][0][filters][1][value]=' + str(updated_at) + '&'
+                                                                                                    'searchCriteria[filter_groups][0][filters][1][condition_type]=gt')
 
     def list_gt_update_at_shipment(self, updated_at):
-
+        print('rest/V1/shipments',
+                         'searchCriteria[filter_groups][0][filters][0][field]=created_at&'
+                         'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
+                                                                                                    'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
         return self.call('rest/V1/shipments',
                          'searchCriteria[filter_groups][0][filters][0][field]=created_at&'
                          'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
@@ -92,7 +96,8 @@ class Order(Client):
 
                     # shipping address
                     if 'address' in order['extension_attributes']['shipping_assignments'][0]['shipping']:
-                        shipping_address = order['extension_attributes']['shipping_assignments'][0]['shipping']['address']
+                        shipping_address = order['extension_attributes']['shipping_assignments'][0]['shipping'][
+                            'address']
                         if not 'region' in shipping_address:
                             shipping_address['region'] = 0
                         if not 'region_code' in shipping_address:
@@ -128,8 +133,9 @@ class Order(Client):
                             partner_id = current_partner[0]
                     #
                     # partner_invoice_id = order['billing_address']['customer_address_id']
-                    partner_shipping_id = order['extension_attributes']['shipping_assignments'][0]['shipping']['address'][
-                        'customer_address_id']
+                    partner_shipping_id = \
+                        order['extension_attributes']['shipping_assignments'][0]['shipping']['address'][
+                            'customer_address_id']
                     #
                     # # address invoice
                     # b = context.env.cr.execute(
@@ -138,7 +144,7 @@ class Order(Client):
                     if 'customer_address_id' in order['billing_address']:
                         b = context.env.cr.execute(
                             "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
-                            order['customer_id'], order['billing_address']['customer_address_id'], backend_id))
+                                order['customer_id'], order['billing_address']['customer_address_id'], backend_id))
                         if b != None:
                             partner_shipping_id = context.env.cr.fetchone()[0]
                         else:
@@ -165,11 +171,13 @@ class Order(Client):
                             billing_address['region'] = 0
                         if 'region_code' not in billing_address:
                             billing_address['region_code'] = 0
-                        billing_address_state_id = get_state_id(billing_address['region'], billing_address['region_code'],
+                        billing_address_state_id = get_state_id(billing_address['region'],
+                                                                billing_address['region_code'],
                                                                 context)
                         billing_address_country_id = get_country_id(billing_address['country_id'], context)
                         billing_address_data = (
-                            billing_address['firstname'] + " " + billing_address['lastname'], billing_address['street'][0],
+                            billing_address['firstname'] + " " + billing_address['lastname'],
+                            billing_address['street'][0],
                             billing_address['postcode'], billing_address['city'], billing_address_state_id,
                             billing_address_country_id,
                             billing_address['email'], billing_address['telephone'], True, 'invoice')
@@ -178,7 +186,7 @@ class Order(Client):
                     # address shipping
                     c = context.env.cr.execute(
                         "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
-                        order['customer_id'], partner_shipping_id, backend_id))
+                            order['customer_id'], partner_shipping_id, backend_id))
                     if c != None:
                         partner_shipping_id = context.env.cr.fetchone()[0]
                     else:
@@ -197,7 +205,8 @@ class Order(Client):
                                 shipping_address['firstname'] + " " + shipping_address['lastname'],
                                 shipping_address['street'][0],
                                 shipping_address['postcode'], shipping_address['city'], shipping_address_state_id,
-                                shipping_address_country_id, shipping_address['email'], shipping_address['telephone'], True,
+                                shipping_address_country_id, shipping_address['email'], shipping_address['telephone'],
+                                True,
                                 'delivery')
                             customers.append(shipping_address_data)
                     context.env.cr.execute(
@@ -227,15 +236,34 @@ class Order(Client):
                 order_id = order['entity_id']
                 carrier_id = None
 
-                if order['status'] in ['closed']:
-                    status = 'done'
-                    confirmation_date = order['created_at']
-                elif order['status'] in ['canceled']:
+                # if order['status'] in ['closed']:
+                #     status = 'done'
+                #     confirmation_date = order['created_at']
+                # elif order['status'] in ['canceled']:
+                #     status = 'cancel'
+                #     confirmation_date = order['created_at']
+                # elif order['status'] in ['processing', 'complete']:
+                #     status = 'sale'
+                #     confirmation_date = order['created_at']
+                # else:
+                #     status = 'sent'
+                #     confirmation_date = None
+                # if 'state' in order:
+                #     state = order['state']
+                # else:
+                #     state = 'N/A'
+
+                if order['state'] in ['closed']:
                     status = 'cancel'
                     confirmation_date = order['created_at']
-                elif order['status'] in ['processing', 'complete']:
+                elif order['state'] in ['canceled']:
+                    status = 'cancel'
+                    confirmation_date = order['created_at']
+                elif order['status'] in ['processing', 'shipping']:
                     status = 'sale'
                     confirmation_date = order['created_at']
+                elif order['status'] in ['complete']:
+                    status = 'done'
                 else:
                     status = 'sent'
                     confirmation_date = None
@@ -293,7 +321,8 @@ class Order(Client):
                                 product_id = tmp[1]
                             else:
                                 if 'weight' in product_item and product_item['weight'] > 0:
-                                    product_id = context.env.ref('magento2_connector.magento_sample_product_consumable').id
+                                    product_id = context.env.ref(
+                                        'magento2_connector.magento_sample_product_consumable').id
                                 else:
                                     product_id = context.env.ref('magento2_connector.magento_sample_product_service').id
                             # insert in sale_order_line
@@ -390,27 +419,33 @@ class Order(Client):
                     payment_method = 'cod'
 
                 if partner_id == context.env.ref('magento2_connector.create_customer_guest').id:
-                    old_partner = context.env['res.partner'].search([('email', '=', order['customer_email']),('active', '=', True), '|', ('type', '=', 'contact'), ('type', '=', False)])
+                    old_partner = context.env['res.partner'].search(
+                        [('email', '=', order['customer_email']), ('active', '=', True), '|', ('type', '=', 'contact'),
+                         ('type', '=', False)])
                     if len(old_partner) > 0:
                         partner_id = old_partner.id
                     else:
                         partner_id = partner_invoice_id
 
-                sale_orders.append({'name': name,
-                                    'partner_id': partner_id,
-                                    'partner_invoice_id': partner_invoice_id,
-                                    'partner_shipping_id': partner_shipping_id,
-                                    'pricelist_id': product_price_list_id,
-                                    # 'state': status,
-                                    'confirmation_date': confirmation_date,
-                                    'order_line': order_lines if len(order_lines) > 0 else '',
-                                    'has_delivery': True if shipment_method else '',
-                                    'carrier_id': carrier_id if carrier_id is not None else False,
-                                    'is_magento_sale_order': True,
-                                    'currency_id': currency,
-                                    'payment_method': payment_method
-                                    # 'note': ("Apply discount code:" + str(coupon_code)) if coupon_code != '' else None
-                                    })
+                if order['state'] in ['processing', 'shipping', 'complete']:
+                    sale_orders.append({'information':
+                                            {'name': name,
+                                             'partner_id': partner_id,
+                                             'partner_invoice_id': partner_invoice_id,
+                                             'partner_shipping_id': partner_shipping_id,
+                                             'pricelist_id': product_price_list_id,
+                                             # 'state': status,
+                                             # 'confirmation_date': confirmation_date,
+                                             'order_line': order_lines if len(order_lines) > 0 else '',
+                                             'has_delivery': True if shipment_method else '',
+                                             'carrier_id': carrier_id if carrier_id is not None else False,
+                                             'is_magento_sale_order': True,
+                                             'currency_id': currency,
+                                             'payment_method': payment_method
+                                             # 'note': ("Apply discount code:" + str(coupon_code)) if coupon_code != '' else None
+                                             },
+                                        'status': status
+                                        })
                 # trường hợp address được add trên front end magento, sẽ được cập nhật khi có sale order ship tới địa chỉ này
                 if 'address' in order['extension_attributes']['shipping_assignments'][0][
                     'shipping'] and 'customer_id' in order:
@@ -418,8 +453,9 @@ class Order(Client):
                     if 'customer_address_id' in shipping_address:
                         customer_address_id = shipping_address['customer_address_id']
                         current_customer_id = order['customer_id']
-                        this_partner = context.env['res.partner'].search([('magento_customer_id', '=', current_customer_id),
-                                                                          ('magento_address_id', '=', customer_address_id)])
+                        this_partner = context.env['res.partner'].search(
+                            [('magento_customer_id', '=', current_customer_id),
+                             ('magento_address_id', '=', customer_address_id)])
                         if not 'region' in shipping_address:
                             shipping_address['region'] = 0
                         if not 'region_code' in shipping_address:
@@ -434,7 +470,8 @@ class Order(Client):
                                 shipping_address['firstname'] + " " + shipping_address['lastname'],
                                 shipping_address['street'][0],
                                 shipping_address['postcode'], shipping_address['city'], shipping_address_state_id,
-                                shipping_address_country_id, shipping_address['email'], shipping_address['telephone'], True,
+                                shipping_address_country_id, shipping_address['email'], shipping_address['telephone'],
+                                True,
                                 'delivery', current_customer_id, customer_address_id, True, True, current_customer_id)
                             new_customer.append(shipping_address_data)
                             context.env.cr.execute(
@@ -478,9 +515,11 @@ class Order(Client):
                                     shipping_address['firstname'] + " " + shipping_address['lastname'],
                                     shipping_address['street'][0],
                                     shipping_address['postcode'], shipping_address['city'], shipping_address_state_id,
-                                    shipping_address_country_id, shipping_address['email'], shipping_address['telephone'],
+                                    shipping_address_country_id, shipping_address['email'],
+                                    shipping_address['telephone'],
                                     True,
-                                    'delivery', current_customer_id, customer_address_id, True, True, current_customer_id)
+                                    'delivery', current_customer_id, customer_address_id, True, True,
+                                    current_customer_id)
                                 new_customer.append(shipping_address_data)
                                 context.env.cr.execute(
                                     """INSERT INTO res_partner (name, street,zip,city,state_id,country_id, email,phone, active,type,magento_customer_id,magento_address_id,customer,is_from_magento,magento_id) VALUES {values} RETURNING id""".format(
@@ -518,14 +557,14 @@ class Order(Client):
 
             if sale_orders and len(sale_orders) > 0:
                 # for e in sale_orders:
-                res = context.env['sale.order'].sudo().create(sale_orders)
-                for e in res:
-                    context.env.cr.execute(
-                        """UPDATE sale_order SET state = %s WHERE id = %s""",(str(status), e.id))
-                    e.order_reference_id = e.name
-                    e.team_id = drinkies_sale_team
+                for e in sale_orders:
+                    res = context.env['sale.order'].sudo().create(e['information'])
+                    # context.env.cr.execute(
+                    #     """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
+                    res.order_reference_id = res.name
+                    res.team_id = drinkies_sale_team
                     # e.action_confirm()
-                    sale_order_ids.append((e.id,))
+                    sale_order_ids.append((res.id,))
 
                 magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
                 if magento_sale_orders and len(magento_sale_orders) > 0:

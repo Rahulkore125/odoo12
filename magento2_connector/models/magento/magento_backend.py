@@ -5,6 +5,7 @@ import math
 from odoo import models, fields, api
 from odoo import tools, _
 from odoo.exceptions import ValidationError, UserError
+from odoo.tools.float_utils import float_round
 from ...utils.magento.customer import Customer, CustomerGroup
 from ...utils.magento.invoice import Invoice
 from ...utils.magento.product import Product
@@ -289,59 +290,61 @@ class MagentoBackend(models.Model):
 
     def pull_magento_backend(self, url, access_token, backend_id):
         # try:
-            if 'https' in url:
-                client = Client(url, access_token, True)
-            else:
-                client = Client(url, access_token, False)
-            # website
-            websites = client.call('rest/V1/store/websites', '')
+        if 'https' in url:
+            client = Client(url, access_token, True)
+        else:
+            client = Client(url, access_token, False)
+        # website
+        websites = client.call('rest/V1/store/websites', '')
 
-            website_magento_id = []
-            website_odoo_id = []
-            check_len_arr = False
-            for website in websites:
-                self.env.cr.execute("""INSERT INTO magento_website (name, code,backend_id,external_id,create_date, write_date,create_uid,write_uid)
+        website_magento_id = []
+        website_odoo_id = []
+        check_len_arr = False
+        for website in websites:
+            self.env.cr.execute("""INSERT INTO magento_website (name, code,backend_id,external_id,create_date, write_date,create_uid,write_uid)
                                         VALUES (%s, %s, %s, %s, %s ,%s, %s, %s) ON CONFLICT (backend_id, external_id) DO UPDATE SET (name,code)=(EXCLUDED.name,EXCLUDED.code) RETURNING id""",
-                                    (website['name'], website['code'], backend_id, website['id'],
-                                     datetime.datetime.today(), datetime.datetime.today(), self.env.uid, self.env.uid))
+                                (website['name'], website['code'], backend_id, website['id'],
+                                 datetime.datetime.today(), datetime.datetime.today(), self.env.uid, self.env.uid))
 
-                # web = self.env['magento.website'].create({
-                #     'name': website['name'],
-                #     'code': website['code'],
-                #     'backend_id': backend_id,
-                #     'external_id': website['id']
-                # })
-                web_id = self.env.cr.fetchall()[0][0]
-                website_magento_id.append(website['id'])
-                website_odoo_id.append(web_id)
+            # web = self.env['magento.website'].create({
+            #     'name': website['name'],
+            #     'code': website['code'],
+            #     'backend_id': backend_id,
+            #     'external_id': website['id']
+            # })
+            web_id = self.env.cr.fetchall()[0][0]
+            website_magento_id.append(website['id'])
+            website_odoo_id.append(web_id)
 
-            # filter(lambda x, y: x == y, website_odoo_id, website_magento_id)
+        # filter(lambda x, y: x == y, website_odoo_id, website_magento_id)
 
-            if len(website_odoo_id) == len(website_magento_id):
-                check_len_arr = True
+        if len(website_odoo_id) == len(website_magento_id):
+            check_len_arr = True
 
-            # store
-            store_groups = client.call('rest/V1/store/storeGroups', '')
-            for store_group in store_groups:
-                self.env.cr.execute("""INSERT INTO magento_store (name, code, root_category_id, website_id, backend_id, external_id)
+        # store
+        store_groups = client.call('rest/V1/store/storeGroups', '')
+        for store_group in store_groups:
+            self.env.cr.execute("""INSERT INTO magento_store (name, code, root_category_id, website_id, backend_id, external_id)
                                        VALUES (%s, %s, %s, %s, %s, %s ) ON CONFLICT (backend_id, external_id) DO UPDATE SET (name, code, root_category_id, website_id) = (EXCLUDED.name, EXCLUDED.code, EXCLUDED.root_category_id, EXCLUDED.website_id)""",
-                                    (store_group['name'], store_group['code'] if 'code' in store_group else '',
-                                     store_group['root_category_id'], website_odoo_id[
-                                         website_magento_id.index(store_group['website_id'])] if check_len_arr else -1,
-                                     backend_id, store_group['id']))
-            # store view
-            store_views = client.call('/rest/V1/store/storeViews', '')
-            for store_view in store_views:
-                self.env.cr.execute("""INSERT INTO magento_storeview (name,code,store_id,website_id,is_active,backend_id, external_id)
+                                (store_group['name'], store_group['code'] if 'code' in store_group else '',
+                                 store_group['root_category_id'], website_odoo_id[
+                                     website_magento_id.index(store_group['website_id'])] if check_len_arr else -1,
+                                 backend_id, store_group['id']))
+        # store view
+        store_views = client.call('/rest/V1/store/storeViews', '')
+        for store_view in store_views:
+            self.env.cr.execute("""INSERT INTO magento_storeview (name,code,store_id,website_id,is_active,backend_id, external_id)
                                                        VALUES (%s, %s, %s, %s, %s, %s, %s ) ON CONFLICT (backend_id, external_id) DO UPDATE SET (name, code, store_id, website_id, is_active) =(EXCLUDED.name, EXCLUDED.code, EXCLUDED.store_id, EXCLUDED.website_id, EXCLUDED.is_active)  """,
-                                    (store_view['name'], store_view['code'] if 'code' in store_view else '',
-                                     client.adapter_magento_id('magento_store', backend_id,
-                                                               store_view['store_group_id'], self),
-                                     website_odoo_id[
-                                         website_magento_id.index(store_view['website_id'])] if check_len_arr else -1,
-                                     store_view['is_active'] if 'is_active' in store_view else 1, backend_id, store_view['id']))
-        # except Exception as e:
-        #     raise UserError(_('Not pull data from magento - magento.backend %s') % tools.ustr(e))
+                                (store_view['name'], store_view['code'] if 'code' in store_view else '',
+                                 client.adapter_magento_id('magento_store', backend_id,
+                                                           store_view['store_group_id'], self),
+                                 website_odoo_id[
+                                     website_magento_id.index(store_view['website_id'])] if check_len_arr else -1,
+                                 store_view['is_active'] if 'is_active' in store_view else 1, backend_id,
+                                 store_view['id']))
+
+    # except Exception as e:
+    #     raise UserError(_('Not pull data from magento - magento.backend %s') % tools.ustr(e))
 
     def fetch_customers(self):
         if not self.auto_fetching:
@@ -579,12 +582,11 @@ class MagentoBackend(models.Model):
                 pull_history = self.env['magento.pull.history'].search(
                     [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
 
-
                 if pull_history:
                     # second pull
                     sync_date = pull_history.sync_date
 
-                    orders = order.list_gt_updated_at(sync_date)
+                    orders = order.list_gt_created_at_after_sync(sync_date)
 
                     if len(orders['items']) > 0:
                         pull_history.write({
@@ -657,18 +659,19 @@ class MagentoBackend(models.Model):
 
             # sync shipments
             pull_shipments_history = self.env['magento.pull.history'].search(
-                [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
+                [('backend_id', '=', backend_id), ('name', '=', 'shipments')])
             if pull_shipments_history:
                 # second pull
                 sync_date = pull_shipments_history.sync_date
                 shipments = order.list_gt_update_at_shipment(sync_date)
+                print(shipments)
                 order.import_shipment(shipments, backend_id, context=self)
                 if len(shipments) > 0:
                     pull_shipments_history.write({
                         'sync_date': datetime.datetime.today()
                     })
-                order_cancel = order.list_order_cancel_updated(updated_at=sync_date)
-                print(order_cancel)
+                # order_cancel = order.list_order_cancel_updated(updated_at=sync_date)
+                # print(order_cancel)
             else:
                 # first pull
                 shipments = order.listShipment()
@@ -692,28 +695,26 @@ class MagentoBackend(models.Model):
             #     orders = order.list(page_size, page + 1)
             #     order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
             return {
-                    'type': 'ir.actions.act_window',
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'res_model': 'popup.dialog',
-                    'target': 'new',
-                    'context': {
-                        'default_message': "Fetch shipments successful"
-                    },
-                }
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'popup.dialog',
+                'target': 'new',
+                'context': {
+                    'default_message': "Fetch shipments successful"
+                },
+            }
         else:
             return {
-                    'type': 'ir.actions.act_window',
-                    'view_type': 'form',
-                    'view_mode': 'form',
-                    'res_model': 'popup.dialog',
-                    'target': 'new',
-                    'context': {
-                        'default_message': "Shipments are fetching by schedule action, you can fetch sale orders manually after schedule action finish"
-                    },
-                }
-
-
+                'type': 'ir.actions.act_window',
+                'view_type': 'form',
+                'view_mode': 'form',
+                'res_model': 'popup.dialog',
+                'target': 'new',
+                'context': {
+                    'default_message': "Shipments are fetching by schedule action, you can fetch sale orders manually after schedule action finish"
+                },
+            }
 
     def fetch_invoice(self):
         if not self.auto_fetching:
@@ -896,38 +897,86 @@ class MagentoBackend(models.Model):
                 },
             }
 
-    @api.multi
-    def auto_fetch_magento_data(self):
-        """ Automatic Pull Data From Instance Follow Standard Process"""
-        if not self.id:
-            self = self.env['magento.backend'].search([], limit=1)
+    def fetch_order_update(self):
+        url = self.web_url
+        token = self.access_token
+        order = Order(url, token, True)
+        backend_id = self.id
+        payment_journal = self.payment_journal.id
+        pull_history = self.env['magento.pull.history'].search(
+            [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
+        orders_updated = order.list_order_updated_at_after_sync(pull_history.sync_date)
+        print(orders_updated)
+        for e in orders_updated['items']:
+            exist_order = self.env['magento.sale.order'].search([('external_id', '=', e['entity_id'])])
+            print(exist_order)
+            if len(exist_order) == 0:
+                pass
+            else:
+                if e['state'] == 'complete' and exist_order.state in ['processing', 'shipping']:
+                    self.fetch_shipments()
+                    self.fetch_invoice()
+                    for stock_picking in exist_order.picking_ids:
+                        if stock_picking.state != 'done':
+                            stock_picking.action_cancel()
+                    for invoice in exist_order.invoice_ids:
+                        account_payment = self.env['account.payment'].sudo().create({
+                            'amount': invoice.amount_total,
+                            'currency_id': invoice.currency_id.id,
+                            'payment_date': invoice.date,
+                            'journal_id': payment_journal,
+                            'communication': invoice.number,
+                            'invoice_ids': [(6, 0, [invoice.id])],
+                            'payment_method_id': self.env.ref('payment.account_payment_method_electronic_in').id,
+                            'payment_type': 'inbound',
+                            'partner_type': 'customer',
+                            'partner_id': invoice.partner_id.id,
+                        })
+                        self.env['account.payment'].sudo().browse(account_payment.id).action_validate_invoice_payment()
+                elif e['state'] == 'canceled':
+                    self.fetch_shipments()
+                    self.fetch_invoice()
+                    for stock_picking in exist_order.picking_ids:
+                        if stock_picking.state != 'done':
+                            stock_picking.action_cancel()
+                        elif stock_picking.state == 'done':
+                            return_pick_wiz = self.env['stock.return.picking'].with_context(
+                                active_model='stock.picking', active_id=stock_picking.id).create({}).create_returns()
 
-        # print('\n\n\n\n')
-        # print("start fetch at " + str(datetime.datetime.now()))
-        # time.sleep(120)
-        # time.sleep(120)f
-        # print("start fetch at 1111 " + str(datetime.datetime.now()))
+@api.multi
+def auto_fetch_magento_data(self):
+    """ Automatic Pull Data From Instance Follow Standard Process"""
+    if not self.id:
+        self = self.env['magento.backend'].search([], limit=1)
 
-        # search and check if = false then run
-        if not self.auto_fetching:
-            print("start fetch at " + str(datetime.datetime.now()))
-            self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = TRUE WHERE id = %s""", (self.id,))
-            self.env.cr.commit()
-            # try:
-            #     print(1)
-            #     self.fetch_products()
-            # except Exception as e:
-            #     print('1' + str(e))
-            # try:
-            #     print(3)
-            #     self.fetch_customers()
-            # except Exception as e:
-            #     print('3' + str(e))
-            # try:
-            print('sale_order')
-            self.fetch_sale_orders()
-            # except Exception as e:
-            # print('4' + str(e))
-            self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = FALSE WHERE id = %s""", (self.id,))
-            self.env.cr.commit()
-            print("end fetch at " + str(datetime.datetime.now()))
+    # print('\n\n\n\n')
+    # print("start fetch at " + str(datetime.datetime.now()))
+    # time.sleep(120)
+    # time.sleep(120)f
+    # print("start fetch at 1111 " + str(datetime.datetime.now()))
+
+    # search and check if = false then run
+    if not self.auto_fetching:
+        print("start fetch at " + str(datetime.datetime.now()))
+        self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = TRUE WHERE id = %s""", (self.id,))
+        self.env.cr.commit()
+        # try:
+        #     print(1)
+        #     self.fetch_products()
+        # except Exception as e:
+        #     print('1' + str(e))
+        # try:
+        #     print(3)
+        #     self.fetch_customers()
+        # except Exception as e:
+        #     print('3' + str(e))
+        # try:
+        print('sale_order')
+        self.fetch_sale_orders()
+        self.fetch_shipments()
+        self.fetch_invoice()
+        # except Exception as e:
+        # print('4' + str(e))
+        self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = FALSE WHERE id = %s""", (self.id,))
+        self.env.cr.commit()
+        print("end fetch at " + str(datetime.datetime.now()))
