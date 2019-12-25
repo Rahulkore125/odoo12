@@ -24,16 +24,16 @@
                             class="btn-primary" sequence="1"/>
                     <button name="fetch_products" type="object" string="Fetch Products" class="btn-primary"
                             sequence="2"/>
-                    <button name="fetch_invoice" type="object" string="Fetch Invoice" class="btn-primary" sequence="3"/>
+<!--                    <button name="fetch_invoice" type="object" string="Fetch Invoice" class="btn-primary" sequence="3"/>-->
 <!--                    <button name="fetch_tax" type="object" string="Fetch Tax" class="btn-primary" sequence="4"/>-->
                     <button name="fetch_customers" type="object" string="Fetch Customers" class="btn-primary"
                             sequence="5"/>
                     <button name="fetch_sale_orders" type="object" string="Fetch Sale Orders" class="btn-primary"
                             sequence="6"/>
-                     <button name="fetch_shipments" type="object" string="Fetch Shipments" class="btn-primary"
-                            sequence="7"/>
-                    <button name="fetch_order_update" type="object" string="Fetch Orders Update" class="btn-primary"
-                            sequence="8"/>
+<!--                     <button name="fetch_shipments" type="object" string="Fetch Shipments" class="btn-primary"-->
+<!--                            sequence="7"/>-->
+<!--                    <button name="fetch_order_update" type="object" string="Fetch Orders Update" class="btn-primary"-->
+<!--                            sequence="8"/>-->
                 </header>
                 <sheet>
                     <div class="oe_title">

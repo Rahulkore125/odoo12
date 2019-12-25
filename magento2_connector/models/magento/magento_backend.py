@@ -558,6 +558,7 @@ class MagentoBackend(models.Model):
             # self.fetch_products()
             self.fetch_customers()
             self.fetch_tax()
+            # self.fetch_order_update()
             # self.fetch_invoice()
 
             backend_name = self.name
@@ -920,19 +921,20 @@ class MagentoBackend(models.Model):
                         if stock_picking.state != 'done':
                             stock_picking.action_cancel()
                     for invoice in exist_order.invoice_ids:
-                        account_payment = self.env['account.payment'].sudo().create({
-                            'amount': invoice.amount_total,
-                            'currency_id': invoice.currency_id.id,
-                            'payment_date': invoice.date,
-                            'journal_id': payment_journal,
-                            'communication': invoice.number,
-                            'invoice_ids': [(6, 0, [invoice.id])],
-                            'payment_method_id': self.env.ref('payment.account_payment_method_electronic_in').id,
-                            'payment_type': 'inbound',
-                            'partner_type': 'customer',
-                            'partner_id': invoice.partner_id.id,
-                        })
-                        self.env['account.payment'].sudo().browse(account_payment.id).action_validate_invoice_payment()
+                        if invoice.state == 'open':
+                            account_payment = self.env['account.payment'].sudo().create({
+                                'amount': invoice.amount_total,
+                                'currency_id': invoice.currency_id.id,
+                                'payment_date': invoice.date,
+                                'journal_id': payment_journal,
+                                'communication': invoice.number,
+                                'invoice_ids': [(6, 0, [invoice.id])],
+                                'payment_method_id': self.env.ref('payment.account_payment_method_electronic_in').id,
+                                'payment_type': 'inbound',
+                                'partner_type': 'customer',
+                                'partner_id': invoice.partner_id.id,
+                            })
+                            self.env['account.payment'].sudo().browse(account_payment.id).action_validate_invoice_payment()
                 elif e['state'] == 'canceled':
                     self.fetch_shipments()
                     self.fetch_invoice()
@@ -941,42 +943,43 @@ class MagentoBackend(models.Model):
                             stock_picking.action_cancel()
                         elif stock_picking.state == 'done':
                             return_pick_wiz = self.env['stock.return.picking'].with_context(
-                                active_model='stock.picking', active_id=stock_picking.id).create({}).create_returns()
+                                active_model='stock.picking', active_id=stock_picking.id).create({})._create_returns()
 
-@api.multi
-def auto_fetch_magento_data(self):
-    """ Automatic Pull Data From Instance Follow Standard Process"""
-    if not self.id:
-        self = self.env['magento.backend'].search([], limit=1)
+    @api.multi
+    def auto_fetch_magento_data(self):
+        """ Automatic Pull Data From Instance Follow Standard Process"""
+        if not self.id:
+            self = self.env['magento.backend'].search([], limit=1)
 
-    # print('\n\n\n\n')
-    # print("start fetch at " + str(datetime.datetime.now()))
-    # time.sleep(120)
-    # time.sleep(120)f
-    # print("start fetch at 1111 " + str(datetime.datetime.now()))
+        # print('\n\n\n\n')
+        # print("start fetch at " + str(datetime.datetime.now()))
+        # time.sleep(120)
+        # time.sleep(120)f
+        # print("start fetch at 1111 " + str(datetime.datetime.now()))
 
-    # search and check if = false then run
-    if not self.auto_fetching:
-        print("start fetch at " + str(datetime.datetime.now()))
-        self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = TRUE WHERE id = %s""", (self.id,))
-        self.env.cr.commit()
-        # try:
-        #     print(1)
-        #     self.fetch_products()
-        # except Exception as e:
-        #     print('1' + str(e))
-        # try:
-        #     print(3)
-        #     self.fetch_customers()
-        # except Exception as e:
-        #     print('3' + str(e))
-        # try:
-        print('sale_order')
-        self.fetch_sale_orders()
-        self.fetch_shipments()
-        self.fetch_invoice()
-        # except Exception as e:
-        # print('4' + str(e))
-        self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = FALSE WHERE id = %s""", (self.id,))
-        self.env.cr.commit()
-        print("end fetch at " + str(datetime.datetime.now()))
+        # search and check if = false then run
+        if not self.auto_fetching:
+            print("start fetch at " + str(datetime.datetime.now()))
+            self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = TRUE WHERE id = %s""", (self.id,))
+            self.env.cr.commit()
+            # try:
+            #     print(1)
+            #     self.fetch_products()
+            # except Exception as e:
+            #     print('1' + str(e))
+            # try:
+            #     print(3)
+            #     self.fetch_customers()
+            # except Exception as e:
+            #     print('3' + str(e))
+            # try:
+            print('sale_order')
+            # self.fetch_sale_orders()
+            # self.fetch_shipments()
+            # self.fetch_invoice()
+            self.fetch_order_update()
+            # except Exception as e:
+            # print('4' + str(e))
+            self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = FALSE WHERE id = %s""", (self.id,))
+            self.env.cr.commit()
+            print("end fetch at " + str(datetime.datetime.now()))
