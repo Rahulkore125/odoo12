@@ -960,6 +960,8 @@ class MagentoBackend(models.Model):
                         'state': 'complete',
                         'status': 'complete'
                     })
+                    self.env.cr.execute(
+                        """UPDATE sale_order SET state = %s WHERE id = %s""", ('done', exist_order.odoo_id.id))
                 elif e['state'] == 'canceled':
                     # self.fetch_shipments()
                     # self.fetch_invoice()
@@ -996,6 +998,8 @@ class MagentoBackend(models.Model):
                         'state': 'canceled',
                         'status': 'canceled'
                     })
+                    self.env.cr.execute(
+                        """UPDATE sale_order SET state = %s WHERE id = %s""", ('cancel', exist_order.odoo_id.id))
 
     @api.multi
     def auto_fetch_magento_data(self):

@@ -31,15 +31,15 @@ class Order(Client):
                          'searchCriteria[filter_groups][0][filters][0][field]=updated_at&'
                          'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
                                                                                                     'searchCriteria[filter_groups][0][filters][0][condition_type]=gt'
-                         +'&searchCriteria[filter_groups][0][filters][1][field]=created_at&'
-                         'searchCriteria[filter_groups][0][filters][1][value]=' + str(updated_at) + '&'
-                                                                                                    'searchCriteria[filter_groups][0][filters][1][condition_type]=gt')
+                         + '&searchCriteria[filter_groups][0][filters][1][field]=created_at&'
+                           'searchCriteria[filter_groups][0][filters][1][value]=' + str(updated_at) + '&'
+                                                                                                      'searchCriteria[filter_groups][0][filters][1][condition_type]=gt')
 
     def list_gt_update_at_shipment(self, updated_at):
         print('rest/V1/shipments',
-                         'searchCriteria[filter_groups][0][filters][0][field]=created_at&'
-                         'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
-                                                                                                    'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
+              'searchCriteria[filter_groups][0][filters][0][field]=created_at&'
+              'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
+                                                                                         'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
         return self.call('rest/V1/shipments',
                          'searchCriteria[filter_groups][0][filters][0][field]=created_at&'
                          'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
@@ -146,7 +146,7 @@ class Order(Client):
                             address_id = 0
                         b = context.env.cr.execute(
                             "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
-                                address_id  , order['billing_address']['customer_address_id'], backend_id))
+                                address_id, order['billing_address']['customer_address_id'], backend_id))
                         if b != None:
                             partner_shipping_id = context.env.cr.fetchone()[0]
                         else:
@@ -186,7 +186,8 @@ class Order(Client):
                         customers.append(billing_address_data)
 
                     # address shipping
-                    if 'customer_address_id' in order['extension_attributes']['shipping_assignments'][0]['shipping']['address']:
+                    if 'customer_address_id' in order['extension_attributes']['shipping_assignments'][0]['shipping'][
+                        'address']:
                         partner_shipping_id = \
                             order['extension_attributes']['shipping_assignments'][0]['shipping']['address'][
                                 'customer_address_id']
@@ -286,7 +287,7 @@ class Order(Client):
                         state = 'cancel'
                     elif state in ['processing', 'shipping']:
                         state = 'sale'
-                    elif state in ['new','pending_payment','payment_review']:
+                    elif state in ['new', 'pending_payment', 'payment_review']:
                         state = 'sent'
                     elif state in ['complete']:
                         state = 'done'
@@ -575,6 +576,7 @@ class Order(Client):
             #         tuple(magento_sale_orders_mapped_id))
 
             sale_order_ids = []
+            sale_order_created = []
 
             if sale_orders and len(sale_orders) > 0:
                 # for e in sale_orders:
@@ -583,11 +585,14 @@ class Order(Client):
 
                     res.order_reference_id = res.name
                     res.team_id = drinkies_sale_team
-                    res.action_confirm()
-                    context.env.cr.execute(
-                        """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
+                    # res.action_confirm()
+                    # context.env.cr.execute(
+                    #     """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
                     sale_order_ids.append((res.id,))
-
+                    sale_order_created.append({
+                        'information': res,
+                        'status': e['status']
+                    })
 
                 magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
                 if magento_sale_orders and len(magento_sale_orders) > 0:
@@ -595,6 +600,11 @@ class Order(Client):
                         """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
                             values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
                         tuple(magento_sale_orders_mapped_id))
+
+                for e in sale_order_created:
+                    e['information'].action_confirm()
+                    context.env.cr.execute(
+                        """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), e['information'].id))
 
     def import_shipment_on_sale_order(self, external_sale_order_id, shipment_product, backend_id, context=None):
         product_order_line_id = []

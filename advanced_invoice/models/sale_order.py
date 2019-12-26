@@ -21,10 +21,13 @@ class SaleOrder(models.Model):
                     'original_invoice': True,
                     'order_id': rec.id
                 })
+                print('ste_' + rec.magento_bind_ids.state)
                 invoice.action_invoice_open()
-                if rec.is_magento_sale_order:
+                if rec.is_magento_sale_order and rec.magento_bind_ids.state != 'complete':
+                    print('not_done')
                     return result
                 else:
+                    print('done_cc')
                     if invoice.state != 'open':
                         invoice.state = 'open'
                     if rec.payment_method == 'cod':
@@ -44,7 +47,3 @@ class SaleOrder(models.Model):
                     })
                     payment.action_validate_invoice_payment()
                     return result
-
-
-
-
