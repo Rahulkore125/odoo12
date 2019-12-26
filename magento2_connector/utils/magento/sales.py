@@ -133,18 +133,20 @@ class Order(Client):
                             partner_id = current_partner[0]
                     #
                     # partner_invoice_id = order['billing_address']['customer_address_id']
-                    partner_shipping_id = \
-                        order['extension_attributes']['shipping_assignments'][0]['shipping']['address'][
-                            'customer_address_id']
+
                     #
                     # # address invoice
                     # b = context.env.cr.execute(
                     #     "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
                     #     order['customer_id'], partner_invoice_id, backend_id))
                     if 'customer_address_id' in order['billing_address']:
+                        if 'customer_id' in order:
+                            address_id = order['customer_id']
+                        else:
+                            address_id = 0
                         b = context.env.cr.execute(
                             "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
-                                order['customer_id'], order['billing_address']['customer_address_id'], backend_id))
+                                address_id  , order['billing_address']['customer_address_id'], backend_id))
                         if b != None:
                             partner_shipping_id = context.env.cr.fetchone()[0]
                         else:
@@ -184,9 +186,20 @@ class Order(Client):
                         customers.append(billing_address_data)
 
                     # address shipping
+                    if 'customer_address_id' in order['extension_attributes']['shipping_assignments'][0]['shipping']['address']:
+                        partner_shipping_id = \
+                            order['extension_attributes']['shipping_assignments'][0]['shipping']['address'][
+                                'customer_address_id']
+                    else:
+                        partner_shipping_id = 0
+                    if 'customer_id' in order:
+                        customer_id = order['customer_id']
+                    else:
+                        customer_id = 0
                     c = context.env.cr.execute(
                         "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
-                            order['customer_id'], partner_shipping_id, backend_id))
+                            customer_id, partner_shipping_id, backend_id))
+
                     if c != None:
                         partner_shipping_id = context.env.cr.fetchone()[0]
                     else:
@@ -431,7 +444,7 @@ class Order(Client):
                         [('email', '=', order['customer_email']), ('active', '=', True), '|', ('type', '=', 'contact'),
                          ('type', '=', False)])
                     if len(old_partner) > 0:
-                        partner_id = old_partner.id
+                        partner_id = old_partner.ids[0]
                     else:
                         partner_id = partner_invoice_id
 

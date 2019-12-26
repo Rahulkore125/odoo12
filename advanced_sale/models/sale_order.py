@@ -90,11 +90,14 @@ class SaleOrder(models.Model):
         """
         Compute the total amounts of the SO.
         """
+        discount_product = self.env.ref('magento2_connector.discount_record').id
+
         for order in self:
             amount_untaxed = amount_tax = 0.0
             amount_reward = 0.0
             for line in order.order_line:
-                if not line.is_reward_line:
+                print(line.product_id.id == discount_product)
+                if not line.is_reward_line and not line.product_id.id == discount_product:
                     amount_untaxed += line.price_subtotal
                 else:
                     amount_reward += line.price_subtotal
