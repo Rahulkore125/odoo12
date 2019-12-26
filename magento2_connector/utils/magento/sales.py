@@ -269,6 +269,14 @@ class Order(Client):
                     confirmation_date = None
                 if 'state' in order:
                     state = order['state']
+                    if state in ['canceled', 'closed', 'holded']:
+                        state = 'cancel'
+                    elif state in ['processing', 'shipping']:
+                        state = 'sale'
+                    elif state in ['new','pending_payment','payment_review']:
+                        state = 'sent'
+                    elif state in ['complete']:
+                        state = 'done'
                 else:
                     state = 'N/A'
 
@@ -281,7 +289,7 @@ class Order(Client):
                     shipment_method = None
                 # magento_sale_orders.append((store_id, backend_id, order_id, shipment_amount, shipment_method, state))
                 magento_sale_orders.append(
-                    (store_id, backend_id, order_id, shipment_amount, shipment_method, state, status))
+                    (store_id, backend_id, order_id, shipment_amount, shipment_method, order['state'], order['status']))
 
                 product_items = order['items']
                 order_lines = []
@@ -444,7 +452,7 @@ class Order(Client):
                                              'payment_method': payment_method
                                              # 'note': ("Apply discount code:" + str(coupon_code)) if coupon_code != '' else None
                                              },
-                                        'status': status
+                                        'status': state
                                         })
                 # trường hợp address được add trên front end magento, sẽ được cập nhật khi có sale order ship tới địa chỉ này
                 if 'address' in order['extension_attributes']['shipping_assignments'][0][
@@ -559,12 +567,14 @@ class Order(Client):
                 # for e in sale_orders:
                 for e in sale_orders:
                     res = context.env['sale.order'].sudo().create(e['information'])
-                    # context.env.cr.execute(
-                    #     """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
+
                     res.order_reference_id = res.name
                     res.team_id = drinkies_sale_team
-                    # e.action_confirm()
+                    res.action_confirm()
+                    context.env.cr.execute(
+                        """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
                     sale_order_ids.append((res.id,))
+
 
                 magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
                 if magento_sale_orders and len(magento_sale_orders) > 0:

@@ -65,9 +65,9 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         result = super(SaleOrder, self).action_confirm()
         for so in self:
-            if so.is_magento_sale_order:
-                return result
-            else:
+            # if so.is_magento_sale_order:
+            #     return result
+            # else:
                 stock_pickings = self.env['stock.picking'].search(
                     [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
                 for stock_picking in stock_pickings:

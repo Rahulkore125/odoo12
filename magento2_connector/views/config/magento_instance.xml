@@ -30,10 +30,10 @@
                             sequence="5"/>
                     <button name="fetch_sale_orders" type="object" string="Fetch Sale Orders" class="btn-primary"
                             sequence="6"/>
-<!--                     <button name="fetch_shipments" type="object" string="Fetch Shipments" class="btn-primary"-->
+<!--                    <button name="fetch_shipments" type="object" string="Fetch Shipments" class="btn-primary"-->
 <!--                            sequence="7"/>-->
-<!--                    <button name="fetch_order_update" type="object" string="Fetch Orders Update" class="btn-primary"-->
-<!--                            sequence="8"/>-->
+                    <button name="fetch_order_update" type="object" string="Fetch Orders Update" class="btn-primary"
+                            sequence="8"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -52,21 +52,21 @@
                             <field name="company_id"/>
                         </group>
                     </group>
-                    <hr class="mt4 mb4"/>
-                    <div class="oe_title">
-                        <h1>
-                            Invoicing
-                        </h1>
-                        <group>
-                            <group>
-                                <field name="journal_id"/>
-                                <field name="payment_journal"/>
-                            </group>
-                            <group>
-                                <field name="prefix_invoice"/>
-                            </group>
-                        </group>
-                    </div>
+<!--                    <hr class="mt4 mb4"/>-->
+<!--                    <div class="oe_title">-->
+<!--                        <h1>-->
+<!--                            Invoicing-->
+<!--                        </h1>-->
+<!--                        <group>-->
+<!--                            <group>-->
+<!--                                <field name="journal_id"/>-->
+<!--                                <field name="payment_journal"/>-->
+<!--                            </group>-->
+<!--                            <group>-->
+<!--                                <field name="prefix_invoice"/>-->
+<!--                            </group>-->
+<!--                        </group>-->
+<!--                    </div>-->
 
                     <hr class="mt4 mb4"/>
                     <div class="oe_title">

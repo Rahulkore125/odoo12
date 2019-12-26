@@ -1,11 +1,11 @@
 import datetime
+from datetime import date
 
 import math
 
 from odoo import models, fields, api
 from odoo import tools, _
 from odoo.exceptions import ValidationError, UserError
-from odoo.tools.float_utils import float_round
 from ...utils.magento.customer import Customer, CustomerGroup
 from ...utils.magento.invoice import Invoice
 from ...utils.magento.product import Product
@@ -71,10 +71,10 @@ class MagentoBackend(models.Model):
     website_ids = fields.One2many('magento.website', 'backend_id', string='Website', readonly=True, )
 
     # Invoice
-    payment_journal = fields.Many2one('account.journal', string='Payment Journal', required=True,
-                                      domain=[('type', 'in', ('bank', 'cash'))])
-    journal_id = fields.Many2one('account.journal', string='Journal', required=True, domain=[('type', '=', 'sale')])
-    prefix_invoice = fields.Char('Prefix Invoice')
+    # payment_journal = fields.Many2one('account.journal', string='Payment Journal', required=True,
+    #                                   domain=[('type', 'in', ('bank', 'cash'))])
+    # journal_id = fields.Many2one('account.journal', string='Journal', required=True, domain=[('type', '=', 'sale')])
+    # prefix_invoice = fields.Char('Prefix Invoice')
     prefix_order = fields.Char('Prefix Order')
     # Page Size
     products_pageSize = fields.Integer(string='Products page size', required=True, default=500)
@@ -558,7 +558,7 @@ class MagentoBackend(models.Model):
             # self.fetch_products()
             self.fetch_customers()
             self.fetch_tax()
-            # self.fetch_order_update()
+            self.fetch_order_update()
             # self.fetch_invoice()
 
             backend_name = self.name
@@ -903,10 +903,11 @@ class MagentoBackend(models.Model):
         token = self.access_token
         order = Order(url, token, True)
         backend_id = self.id
-        payment_journal = self.payment_journal.id
+        # payment_journal = self.payment_journal.id
         pull_history = self.env['magento.pull.history'].search(
             [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
         orders_updated = order.list_order_updated_at_after_sync(pull_history.sync_date)
+        # self.fetch_sale_orders()
         print(orders_updated)
         for e in orders_updated['items']:
             exist_order = self.env['magento.sale.order'].search([('external_id', '=', e['entity_id'])])
@@ -915,35 +916,86 @@ class MagentoBackend(models.Model):
                 pass
             else:
                 if e['state'] == 'complete' and exist_order.state in ['processing', 'shipping']:
-                    self.fetch_shipments()
-                    self.fetch_invoice()
+                    # self.fetch_shipments()
+                    # self.fetch_invoice()
                     for stock_picking in exist_order.picking_ids:
                         if stock_picking.state != 'done':
                             stock_picking.action_cancel()
+                    # for invoice in exist_order.invoice_ids:
+                    #     if invoice.state == 'open':
+                    #         account_payment = self.env['account.payment'].sudo().create({
+                    #             'amount': invoice.amount_total,
+                    #             'currency_id': invoice.currency_id.id,
+                    #             'payment_date': invoice.date,
+                    #             'journal_id': payment_journal,
+                    #             'communication': invoice.number,
+                    #             'invoice_ids': [(6, 0, [invoice.id])],
+                    #             'payment_method_id': self.env.ref('payment.account_payment_method_electronic_in').id,
+                    #             'payment_type': 'inbound',
+                    #             'partner_type': 'customer',
+                    #             'partner_id': invoice.partner_id.id,
+                    #         })
+                    #         self.env['account.payment'].sudo().browse(account_payment.id).action_validate_invoice_payment()
+
                     for invoice in exist_order.invoice_ids:
                         if invoice.state == 'open':
-                            account_payment = self.env['account.payment'].sudo().create({
+                            if exist_order.payment_method == 'cod':
+                                journal_id = self.env['account.journal'].search([('code', '=', 'CSH1')]).id
+                            elif exist_order.payment_method == 'online_payment':
+                                journal_id = self.env['account.journal'].search([('code', '=', 'BNK1')]).id
+                            payment = self.env['account.payment'].create({
+                                'invoice_ids': [(4, invoice.id, None)],
                                 'amount': invoice.amount_total,
-                                'currency_id': invoice.currency_id.id,
-                                'payment_date': invoice.date,
-                                'journal_id': payment_journal,
+                                'payment_date': date.today(),
                                 'communication': invoice.number,
-                                'invoice_ids': [(6, 0, [invoice.id])],
-                                'payment_method_id': self.env.ref('payment.account_payment_method_electronic_in').id,
                                 'payment_type': 'inbound',
+                                'journal_id': journal_id,
                                 'partner_type': 'customer',
-                                'partner_id': invoice.partner_id.id,
+                                'payment_method_id': 1,
+                                'partner_id': invoice.partner_id.id
                             })
-                            self.env['account.payment'].sudo().browse(account_payment.id).action_validate_invoice_payment()
+                            print(payment)
+                            payment.action_validate_invoice_payment()
+                    exist_order.write({
+                        'state': 'complete',
+                        'status': 'complete'
+                    })
                 elif e['state'] == 'canceled':
-                    self.fetch_shipments()
-                    self.fetch_invoice()
+                    # self.fetch_shipments()
+                    # self.fetch_invoice()
                     for stock_picking in exist_order.picking_ids:
                         if stock_picking.state != 'done':
                             stock_picking.action_cancel()
                         elif stock_picking.state == 'done':
-                            return_pick_wiz = self.env['stock.return.picking'].with_context(
+                            new_picking_id, pick_type_id = self.env['stock.return.picking'].with_context(
                                 active_model='stock.picking', active_id=stock_picking.id).create({})._create_returns()
+                            ctx = dict(self.env.context)
+
+                            ctx.update({
+                                'search_default_picking_type_id': pick_type_id,
+                                'search_default_draft': False,
+                                'search_default_assigned': False,
+                                'search_default_confirmed': False,
+                                'search_default_ready': False,
+                                'search_default_late': False,
+                                'search_default_available': False,
+                            })
+
+                            picking = self.env['stock.picking'].search([('id', '=', new_picking_id)])
+                            for move_line in picking.move_lines:
+                                move_line.quantity_done = move_line.product_uom_qty
+                            picking.action_done()
+                            picking.is_return_picking = True
+
+                            picking.date_return = date.today()
+
+                            origin_picking = self.env['stock.picking'].search(
+                                [('id', '=', stock_picking.id)])
+                            origin_picking.has_return_picking = True
+                    exist_order.write({
+                        'state': 'canceled',
+                        'status': 'canceled'
+                    })
 
     @api.multi
     def auto_fetch_magento_data(self):
@@ -974,10 +1026,10 @@ class MagentoBackend(models.Model):
             #     print('3' + str(e))
             # try:
             print('sale_order')
-            # self.fetch_sale_orders()
+            self.fetch_sale_orders()
             # self.fetch_shipments()
             # self.fetch_invoice()
-            self.fetch_order_update()
+            # self.fetch_order_update()
             # except Exception as e:
             # print('4' + str(e))
             self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = FALSE WHERE id = %s""", (self.id,))
