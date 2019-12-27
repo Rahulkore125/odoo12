@@ -280,7 +280,7 @@ class Order(Client):
                     status = 'done'
                 else:
                     status = 'sent'
-                    confirmation_date = None
+                    confirmation_date = order['created_at']
                 if 'state' in order:
                     state = order['state']
                     if state in ['canceled', 'closed', 'holded']:
@@ -457,7 +457,7 @@ class Order(Client):
                                              'partner_shipping_id': partner_shipping_id,
                                              'pricelist_id': product_price_list_id,
                                              # 'state': status,
-                                             # 'confirmation_date': confirmation_date,
+                                             'confirmation_date': confirmation_date,
                                              'order_line': order_lines if len(order_lines) > 0 else '',
                                              'has_delivery': True if shipment_method else '',
                                              'carrier_id': carrier_id if carrier_id is not None else False,

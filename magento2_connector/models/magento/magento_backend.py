@@ -558,7 +558,7 @@ class MagentoBackend(models.Model):
             # self.fetch_products()
             self.fetch_customers()
             self.fetch_tax()
-            # self.fetch_order_update()
+            self.fetch_order_update()
             # self.fetch_invoice()
 
             backend_name = self.name
