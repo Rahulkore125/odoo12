@@ -73,7 +73,7 @@ class Product(Client):
             if weight > 0:
                 product_type_magento = 'product'
             else:
-                #todo
+                # todo
                 product_type_magento = 'product'
             categories = []
             # add category
@@ -252,7 +252,7 @@ class Product(Client):
                 weight = product['weight']
             else:
                 weight = 0
-            #todo
+            # todo
             if weight > 0:
                 magento_product_type = 'product'
             else:

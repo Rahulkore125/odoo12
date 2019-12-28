@@ -27,7 +27,7 @@ class ProductProduct(models.Model):
                                                                    self._context.get('owner_id'),
                                                                    self._context.get('package_id'),
                                                                    self._context.get('from_date'),
-                                                                   self._context.get('to_date'))
+                                                                   to_date=to_date)
         # print(res[68])
 
         dates_in_the_past = False
@@ -62,7 +62,8 @@ class ProductProduct(models.Model):
                             for g in template_qty[f]:
                                 if g != 'qty':
                                     product = self.env['product.product'].search([('id', '=', g)])
-                                    if template_qty[f][g]['qty_available'] * product.deduct_amount_parent_product != template_qty[f]['qty']:
+                                    if template_qty[f][g]['qty_available'] * product.deduct_amount_parent_product != \
+                                            template_qty[f]['qty']:
                                         res[g][
                                             'qty_available'] = template.origin_quantity / product.deduct_amount_parent_product
                                         res[g][

@@ -17,4 +17,3 @@ class ProductProduct(models.Model):
         'Magento Sale Price',
         digits=dp.get_precision('Product Price'),
         help="The sale price is managed from the product template. Click on the 'Configure Variants' button to set the extra attribute prices.")
-

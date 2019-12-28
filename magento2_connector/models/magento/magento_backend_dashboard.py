@@ -31,7 +31,6 @@ class MagentoBackendDashboard(models.Model):
         number_customer = self.env.cr.fetchone()[0]
         number_product = 0
 
-
         # order
         self.env.cr.execute(
             """SELECT COUNT(DISTINCT(id)) FROM magento_sale_order  WHERE backend_id = %s AND odoo_id in (SELECT id FROM sale_order WHERE state LIKE 'sale')""",

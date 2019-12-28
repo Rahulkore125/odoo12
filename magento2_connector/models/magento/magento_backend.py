@@ -1000,7 +1000,6 @@ class MagentoBackend(models.Model):
                         'date_invoice': date.today(),
                     })
 
-
                     invoice = self.env['account.invoice'].search([('original_invoice', '=', True), (
                         'order_id', '=', exist_order.odoo_id.id)])
                     invoice_lines = invoice.invoice_line_ids

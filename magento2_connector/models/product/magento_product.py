@@ -55,4 +55,3 @@ class MagentoProductProduct(models.Model):
                             rec.image_small = profile_image
                     except:
                         raise UserError(_('Please provide correct URL or check your image size.!'))
-

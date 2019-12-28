@@ -41,9 +41,11 @@ class MagentoSaleOrder(models.Model):
             'target': 'self',
             'url': self.odoo_id.get_portal_url(),
         }
+
     @api.multi
     def action_view_invoice(self):
         return self.odoo_id.action_view_invoice()
+
 
 class MagentoSaleOrderLine(models.Model):
     _name = 'magento.sale.order.line'
