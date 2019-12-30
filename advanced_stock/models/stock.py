@@ -77,7 +77,6 @@ class Inventory(models.Model):
 
             for e in inventory.line_ids:
                 if e.product_id.product_tmpl_id.multiple_sku_one_stock:
-
                     if e.product_id.id == e.product_id.product_tmpl_id.variant_manage_stock.id:
                         e.product_id.product_tmpl_id.origin_quantity = e.product_qty
 

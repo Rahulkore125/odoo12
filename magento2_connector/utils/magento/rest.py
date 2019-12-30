@@ -4,7 +4,6 @@ try:
     import json
 except ImportError:
     pass
-from odoo.http import request
 
 
 class Client(object):

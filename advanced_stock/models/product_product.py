@@ -46,7 +46,7 @@ class ProductProduct(models.Model):
                 if product.id == product.product_tmpl_id.variant_manage_stock.id and product.product_tmpl_id.multiple_sku_one_stock:
                     template_qty[product.product_tmpl_id.id]['qty'] = product_template.origin_quantity
 
-        if to_date and to_date < (fields.Datetime.now() + timedelta(seconds=-15)):
+        if to_date and to_date < (fields.Datetime.now() + timedelta(seconds=-10)):
             dates_in_the_past = True
 
         if not dates_in_the_past:

@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-from odoo.http import request
 from ..magento.rest import Client
 
 
