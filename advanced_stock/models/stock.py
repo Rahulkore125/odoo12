@@ -1,4 +1,4 @@
-from odoo import models, fields, api, tools, _
+from odoo import models, api, tools, _
 from odoo.tools import float_utils, float_compare
 
 
@@ -16,7 +16,7 @@ class ProductChangeQuantity(models.TransientModel):
         for wizard in self:
             product = wizard.product_id.with_context(location=wizard.location_id.id)
             line_data = wizard._action_start_line()
-            print(line_data)
+
             if wizard.product_id.id:
                 inventory_filter = 'product'
             else:
@@ -31,7 +31,8 @@ class ProductChangeQuantity(models.TransientModel):
             inventory.action_validate()
         product = self.env['product.product'].search([('id', '=', line_data['product_id'])])
         if product.product_tmpl_id.multiple_sku_one_stock:
-            product.product_tmpl_id.origin_quantity = line_data['product_qty']
+            product.product_tmpl_id.origin_quantity = line_data['product_qty'] * product.deduct_amount_parent_product
+
         return {'type': 'ir.actions.act_window_close'}
 
 
@@ -47,10 +48,10 @@ class Inventory(models.Model):
     def action_validate(self):
         inventory_lines = self.line_ids.filtered(lambda l: l.product_id.tracking in ['lot',
                                                                                      'serial'] and not l.prod_lot_id and l.theoretical_qty != l.product_qty)
-        print(inventory_lines)
+
         lines = self.line_ids.filtered(lambda l: float_compare(l.product_qty, 1,
                                                                precision_rounding=l.product_uom_id.rounding) > 0 and l.product_id.tracking == 'serial' and l.prod_lot_id)
-        print(lines)
+
         if inventory_lines and not lines:
             wiz_lines = [(0, 0, {'product_id': product.id, 'tracking': product.tracking}) for product in
                          inventory_lines.mapped('product_id')]
@@ -73,10 +74,9 @@ class Inventory(models.Model):
             # first remove the existing stock moves linked to this inventory
             inventory.mapped('move_ids').unlink()
             inventory.line_ids._generate_moves()
-            print(inventory.line_ids)
+
             for e in inventory.line_ids:
                 if e.product_id.product_tmpl_id.multiple_sku_one_stock:
-                    print(e.product_id.product_tmpl_id.variant_manage_stock.id)
 
                     if e.product_id.id == e.product_id.product_tmpl_id.variant_manage_stock.id:
                         e.product_id.product_tmpl_id.origin_quantity = e.product_qty

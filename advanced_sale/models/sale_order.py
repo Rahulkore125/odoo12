@@ -82,7 +82,6 @@ class SaleOrder(models.Model):
                     for e in stock_picking.move_ids_without_package:
                         if e.product_id.product_tmpl_id.multiple_sku_one_stock:
                             e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity - e.quantity_done * e.product_id.deduct_amount_parent_product
-
             self.date_confirm_order = date.today()
             return result
 
@@ -96,7 +95,6 @@ class SaleOrder(models.Model):
             amount_untaxed = amount_tax = 0.0
             amount_reward = 0.0
             for line in order.order_line:
-                print(line.product_id.id == discount_product)
                 if not line.is_reward_line and not line.product_id.id == discount_product:
                     amount_untaxed += line.price_subtotal
                 else:

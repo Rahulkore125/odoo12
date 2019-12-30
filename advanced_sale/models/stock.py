@@ -17,7 +17,6 @@ class StockReturnPicking(models.TransientModel):
 
     def create_returns(self):
         for wizard in self:
-            print(wizard)
             new_picking_id, pick_type_id = super(StockReturnPicking, wizard)._create_returns()
             # Override the context to disable all the potential filters that could have been set previously
         ctx = dict(self.env.context)

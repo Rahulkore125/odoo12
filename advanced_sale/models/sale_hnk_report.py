@@ -166,7 +166,7 @@ class SaleHnkReport(models.Model):
                                 product_ids[sale_order_line.product_id.id][
                                     'amount_lalafood_ol'] += sale_order_line.price_subtotal
                         # handle amount discount
-                        print(product_ids[sale_order_line.product_id.id])
+                        # print(product_ids[sale_order_line.product_id.id])
                         product_ids[sale_order_line.product_id.id][
                             'amount_discount'] += sale_order_line.price_subtotal * sale_order_line.discount / 100
 

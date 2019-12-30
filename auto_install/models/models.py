@@ -25,7 +25,7 @@ class SaleOrder(models.Model):
         self.env.cr.execute("DELETE from stock_return_picking_line")
         self.env.cr.execute("DELETE from stock_move")
         self.env.cr.execute("DELETE from stock_quant")
-        self.env.cr.execute("UPDATE magento_pull_history set sync_date = '2019-12-24 01:17:04.347442' WHERE name='sale_orders'")
+        # self.env.cr.execute("UPDATE magento_pull_history set sync_date = '2019-12-24 01:17:04.347442' WHERE name='sale_orders'")
         # self.env.cr.execute("DELETE  from product_template WHERE is_magento_product = True")
         # self.env.cr.execute("DELETE from magento_pull_history WHERE name = 'normal_product'")
         # self.env.cr.execute("DELETE from magento_pull_history WHERE name = 'categories'")
