@@ -21,7 +21,7 @@ class SaleOrder(models.Model):
                     'original_invoice': True,
                     'order_id': rec.id
                 })
-                print('ste_' + rec.magento_bind_ids.state)
+                # print('ste_' + rec.magento_bind_ids.state)
                 invoice.action_invoice_open()
                 # if rec.is_magento_sale_order and rec.magento_bind_ids.state != 'complete':
                 #     print('not_done')
