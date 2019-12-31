@@ -48,6 +48,6 @@ class SaleOrder(models.Model):
         # self.env.cr.execute("UPDATE product_product SET display_deduct_parent_product = TRUE WHERE id = 68")
         # self.env.cr.execute("UPDATE product_product SET display_deduct_parent_product = TRUE WHERE id = 69")
 
-        # self.env.cr.execute("UPDATE magento_backend SET auto_fetching = FALSE ")
+        self.env.cr.execute("UPDATE magento_backend SET auto_fetching = FALSE ")
 
 
