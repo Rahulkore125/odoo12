@@ -17,7 +17,10 @@
                 <form string="Sale Heineken Form">
                     <sheet>
                         <group>
-                            <field name="datetime_report" required="1"/>
+                            <field name="compute_at_date" widget="radio"/>
+                            <field name="date_report" attrs="{'invisible': [('compute_at_date', '=', 1)], 'required': [('compute_at_date', '=', 0)]}"/>
+                            <field name="from_date_report" attrs="{'invisible': [('compute_at_date', '=', 0)], 'required': [('compute_at_date', '=', 1)]}"/>
+                            <field name="to_date_report" attrs="{'invisible': [('compute_at_date', '=', 0)], 'required': [('compute_at_date', '=', 1)]}"/>
                         </group>
                         <footer>
                             <button name="generate_report" type="object" class="oe_highlight"

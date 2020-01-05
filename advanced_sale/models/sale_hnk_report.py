@@ -1,21 +1,32 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta
 
-from odoo import models, fields
+from odoo import models, fields, _
+from odoo.exceptions import UserError
 
 
 class SaleHnkReport(models.Model):
     _name = 'sale.hnk.report'
 
+    compute_at_date = fields.Selection([
+        (0, 'At a Specific Date'),
+        (1, 'At a Time Period')
+    ], string="Compute", default=0)
     date_report = fields.Date(string="Date Report", default=fields.Date.today)
+    from_date_report = fields.Date(string="From Date", default=fields.Date.today)
+    to_date_report = fields.Date(string="To Date", default=fields.Date.today)
     report_line_ids = fields.One2many(comodel_name='sale.hnk.report.line', inverse_name='sale_report_id',
                                       string="Report Line")
     datetime_report = fields.Datetime(string="Datetime Report")
 
     def generate_report(self):
-        self.date_report = date(year=self.datetime_report.year, month=self.datetime_report.month,
-                                day=self.datetime_report.day)
+        a = self.env.user.tz_offset
+        prefix = a.split('00')[0]
 
-        sale_orders = self.env['sale.order'].search([('date_confirm_order', '=', self.date_report)])
+        if prefix[0] == '+':
+            time_offset = int(prefix.split('+')[1])
+        elif prefix[0] == '-':
+            time_offset = - int(prefix.split('-')[1])
+
         values = []
 
         product_ids = {}
@@ -28,9 +39,32 @@ class SaleHnkReport(models.Model):
         lazmall = self.env.ref('advanced_sale.lazmall').id
         lalafood = self.env.ref('advanced_sale.lalafood').id
 
-        # handle stock
-        today_date = fields.Datetime.to_datetime(self.datetime_report)
-        previous_day_date = fields.Datetime.to_datetime(self.datetime_report) + timedelta(days=-1)
+        if self.compute_at_date == 1:
+            if self.from_date_report >= self.to_date_report:
+                raise UserError(_('Invalid data. From date can not great than or equal to date'))
+            else:
+                today_date = datetime(year=self.to_date_report.year, month=self.to_date_report.month,
+                                      day=self.to_date_report.day, hour=24 - time_offset, minute=00, second=00)
+                previous_day_date = datetime(year=self.from_date_report.year, month=self.from_date_report.month,
+                                             day=self.from_date_report.day, hour=24 - time_offset, minute=00, second=00) + timedelta(days=-1)
+                # print(today_date)
+                # print(previous_day_date)
+        elif self.compute_at_date == 0:
+            today_date = datetime(year=self.date_report.year, month=self.date_report.month,
+                                  day=self.date_report.day, hour=24 - time_offset, minute=00, second=00)
+            previous_day_date = today_date + timedelta(days=-1)
+
+        start_order_date = datetime(year=previous_day_date.year, month=previous_day_date.month,
+                                    day=previous_day_date.day, hour=24 - time_offset, minute=00, second=00)
+
+        end_order_date = datetime(year=today_date.year, month=today_date.month,
+                                  day=today_date.day, hour=24 - time_offset, minute=00, second=00)
+        print(start_order_date)
+        print(end_order_date)
+
+        sale_orders = self.env['sale.order'].search(
+            [('create_date', '>', start_order_date), ('create_date', '<', end_order_date)])
+
         heineken_product = self.env['product.product'].search([('is_heineken_product', '=', True)])
         qty_previous_day = self.env['product.product'].browse(heineken_product.ids)._compute_quantities_dict(
             self._context.get('lot_id'),
@@ -41,6 +75,9 @@ class SaleHnkReport(models.Model):
             self._context.get(
                 'from_date'),
             to_date=previous_day_date)
+
+        # todo chua xu ly truong hop cac mui gio am.
+        # print(qty_previous_day)
         qty_today = self.env['product.product'].browse(heineken_product.ids)._compute_quantities_dict(
             self._context.get('lot_id'),
             self._context.get(

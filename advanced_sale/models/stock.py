@@ -42,6 +42,10 @@ class StockReturnPicking(models.TransientModel):
         origin_picking = self.env['stock.picking'].search(
             [('id', '=', wizard.picking_id.id)])
         origin_picking.has_return_picking = True
+
+        self.env.cr.execute(
+            """UPDATE sale_order SET state = %s WHERE id = %s""", ('cancel', picking.sale_id.id))
+
         action = self.env['sale.order'].browse(picking.sale_id.id).action_view_delivery()
 
         for e in picking.move_ids_without_package:
