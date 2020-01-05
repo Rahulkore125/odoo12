@@ -962,7 +962,7 @@ class MagentoBackend(models.Model):
                     })
                     self.env.cr.execute(
                         """UPDATE sale_order SET state = %s WHERE id = %s""", ('done', exist_order.odoo_id.id))
-                elif e['state'] == 'canceled':
+                elif e['state'] == 'canceled' and exist_order.state in ['processing', 'shipping']:
                     # self.fetch_shipments()
                     # self.fetch_invoice()
                     for stock_picking in exist_order.picking_ids:
