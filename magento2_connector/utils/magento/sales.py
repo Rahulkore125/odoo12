@@ -73,6 +73,7 @@ class Order(Client):
                         default_magento_partner_odoo_id = new_magento_res_partner.id
             else:
                 default_magento_partner_odoo_id = default_magento_partner_odoo.id
+            print(orders)
             for order in orders:
                 # odoo
                 partner_id = context.env.ref('magento2_connector.create_customer_guest').id
@@ -564,55 +565,55 @@ class Order(Client):
                                         """INSERT INTO magento_address (odoo_id,magento_partner_id,backend_id) VALUES (%s,%s,%s)""",
                                         (current_partner_id, magento_partner_odoo_id, backend_id))
 
-                drinkies_sale_team = context.env.ref('advanced_sale.sale').id
+            drinkies_sale_team = context.env.ref('advanced_sale.sale').id
 
-                # if sale_orders and len(sale_orders) > 0:
-                #     res = context.env['sale.order'].sudo().create(sale_orders[65])
-                # # res.action_confirm()
-                # res.order_reference_id = res.name
-                # res.team_id = drinkies_sale_team
-                # sale_order_ids = []
-                # for sale_order_id in res:
-                #     sale_order_ids.append((sale_order_id.id,))
-                #
-                # magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
-                # if magento_sale_orde
-                # rs and len(magento_sale_orders) > 0:
-                #     context.env.cr.execute(
-                #         """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
-                #             values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
-                #         tuple(magento_sale_orders_mapped_id))
+            # if sale_orders and len(sale_orders) > 0:
+            #     res = context.env['sale.order'].sudo().create(sale_orders[65])
+            # # res.action_confirm()
+            # res.order_reference_id = res.name
+            # res.team_id = drinkies_sale_team
+            # sale_order_ids = []
+            # for sale_order_id in res:
+            #     sale_order_ids.append((sale_order_id.id,))
+            #
+            # magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
+            # if magento_sale_orde
+            # rs and len(magento_sale_orders) > 0:
+            #     context.env.cr.execute(
+            #         """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
+            #             values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
+            #         tuple(magento_sale_orders_mapped_id))
 
-                sale_order_ids = []
-                sale_order_created = []
+            sale_order_ids = []
+            sale_order_created = []
 
-                if sale_orders and len(sale_orders) > 0:
-                    # for e in sale_orders:
-                    for e in sale_orders:
-                        res = context.env['sale.order'].sudo().create(e['information'])
+            if sale_orders and len(sale_orders) > 0:
+                # for e in sale_orders:
+                for e in sale_orders:
+                    res = context.env['sale.order'].sudo().create(e['information'])
 
-                        res.order_reference_id = res.name
-                        res.team_id = drinkies_sale_team
-                        # res.action_confirm()
-                        # context.env.cr.execute(
-                        #     """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
-                        sale_order_ids.append((res.id,))
-                        sale_order_created.append({
-                            'information': res,
-                            'status': e['status']
-                        })
+                    res.order_reference_id = res.name
+                    res.team_id = drinkies_sale_team
+                    # res.action_confirm()
+                    # context.env.cr.execute(
+                    #     """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
+                    sale_order_ids.append((res.id,))
+                    sale_order_created.append({
+                        'information': res,
+                        'status': e['status']
+                    })
 
-                    magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
-                    if magento_sale_orders and len(magento_sale_orders) > 0:
-                        context.env.cr.execute(
-                            """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
-                                values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
-                            tuple(magento_sale_orders_mapped_id))
+                magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
+                if magento_sale_orders and len(magento_sale_orders) > 0:
+                    context.env.cr.execute(
+                        """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
+                            values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
+                        tuple(magento_sale_orders_mapped_id))
 
-                    for e in sale_order_created:
-                        e['information'].action_confirm()
-                        context.env.cr.execute(
-                            """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), e['information'].id))
+                for e in sale_order_created:
+                    e['information'].action_confirm()
+                    context.env.cr.execute(
+                        """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), e['information'].id))
 
     def import_shipment_on_sale_order(self, external_sale_order_id, shipment_product, backend_id, context=None):
         product_order_line_id = []

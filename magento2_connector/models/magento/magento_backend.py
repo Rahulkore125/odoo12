@@ -558,7 +558,7 @@ class MagentoBackend(models.Model):
             # self.fetch_products()
             # self.fetch_customers()
             # self.fetch_tax()
-            # self.fetch_order_update()
+            self.fetch_order_update()
             # self.fetch_invoice()
 
             backend_name = self.name
@@ -588,7 +588,7 @@ class MagentoBackend(models.Model):
                     sync_date = pull_history.sync_date
 
                     orders = order.list_gt_created_at_after_sync(sync_date)
-
+                    print(orders)
                     if len(orders['items']) > 0:
                         pull_history.write({
                             'sync_date': datetime.datetime.today()
