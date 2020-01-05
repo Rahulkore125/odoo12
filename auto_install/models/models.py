@@ -25,14 +25,20 @@ class SaleOrder(models.Model):
         # self.env.cr.execute("DELETE from stock_return_picking_line")
         # self.env.cr.execute("DELETE from stock_move")
         # self.env.cr.execute("DELETE from stock_quant")
-        self.env.cr.execute("UPDATE magento_backend SET auto_fetching = False")
-        self.env.cr.execute("UPDATE magento_pull_history set sync_date = '2020-1-5 00:00:04.347442' WHERE name='sale_orders'")
+        # self.env.cr.execute("UPDATE magento_backend SET auto_fetching = False")
+        # self.env.cr.execute("UPDATE magento_pull_history set sync_date = '2020-1-5 00:00:04.347442' WHERE name='sale_orders'")
         # self.env.cr.execute("DELETE  from product_template WHERE is_magento_product = True")
         # self.env.cr.execute("DELETE from magento_pull_history WHERE name = 'normal_product'")
         # self.env.cr.execute("DELETE from magento_pull_history WHERE name = 'categories'")
         # self.env.cr.execute("DELETE from magento_product_attribute")
         # self.env.cr.execute("DELETE from magento_product_category")
         # self.env.cr.execute("DELETE from magento_pull_history WHERE name = 'sale_orders'")
+
+        self.env.cr.execute("UPDATE sale_order set create_date = '2020-1-5 12:00:04.347442' WHERE date_order='2020-01-06 00:27:55.000000'")
+        self.env.cr.execute(
+            "UPDATE sale_order set date_order = '2020-1-5 12:00:04.347442' WHERE date_order='2020-01-06 00:27:55.000000'")
+
+
 
 
 
