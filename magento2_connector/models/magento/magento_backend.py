@@ -558,7 +558,7 @@ class MagentoBackend(models.Model):
             # self.fetch_products()
             # self.fetch_customers()
             # self.fetch_tax()
-            # self.fetch_order_update()
+            self.fetch_order_update()
             # self.fetch_invoice()
 
             backend_name = self.name
@@ -588,7 +588,7 @@ class MagentoBackend(models.Model):
                     sync_date = pull_history.sync_date
 
                     orders = order.list_gt_created_at_after_sync(sync_date)
-
+                    print(orders)
                     if len(orders['items']) > 0:
                         pull_history.write({
                             'sync_date': datetime.datetime.today()
@@ -962,7 +962,7 @@ class MagentoBackend(models.Model):
                     })
                     self.env.cr.execute(
                         """UPDATE sale_order SET state = %s WHERE id = %s""", ('done', exist_order.odoo_id.id))
-                elif e['state'] == 'canceled':
+                elif e['state'] == 'canceled' and exist_order.state in ['processing', 'shipping']:
                     # self.fetch_shipments()
                     # self.fetch_invoice()
                     for stock_picking in exist_order.picking_ids:
