@@ -34,9 +34,9 @@ class SaleOrder(models.Model):
         # self.env.cr.execute("DELETE from magento_product_category")
         # self.env.cr.execute("DELETE from magento_pull_history WHERE name = 'sale_orders'")
 
-        self.env.cr.execute("UPDATE sale_order set create_date = '2020-1-5 12:00:04.347442' WHERE date_order='2020-01-06 00:27:55.000000'")
+        self.env.cr.execute(" UPDATE sale_order set create_date = '2020-01-05 17:27:51.768691' WHERE id > 4012 and id < 4020")
         self.env.cr.execute(
-            "UPDATE sale_order set date_order = '2020-1-5 12:00:04.347442' WHERE date_order='2020-01-06 00:27:55.000000'")
+            "UPDATE sale_order set date_order = '2020-01-05 17:27:51.768691' WHERE id > 4012 and id < 4020")
 
 
 
