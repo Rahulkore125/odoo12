@@ -53,15 +53,16 @@ class SaleHnkReport(models.Model):
             today_date = datetime(year=self.date_report.year, month=self.date_report.month,
                                   day=self.date_report.day, hour=24 - time_offset, minute=00, second=00)
             previous_day_date = today_date + timedelta(days=-1)
+            previous_day_date = datetime(previous_day_date.year, month=previous_day_date.month,
+                                  day=previous_day_date.day, hour=24 - time_offset, minute=00, second=00)
+            print(today_date)
+            print(previous_day_date)
 
         start_order_date = datetime(year=previous_day_date.year, month=previous_day_date.month,
                                     day=previous_day_date.day, hour=24 - time_offset, minute=00, second=00)
 
         end_order_date = datetime(year=today_date.year, month=today_date.month,
                                   day=today_date.day, hour=24 - time_offset, minute=00, second=00)
-        print(start_order_date)
-        print(end_order_date)
-
         sale_orders = self.env['sale.order'].search(
             [('create_date', '>', start_order_date), ('create_date', '<', end_order_date)])
 
