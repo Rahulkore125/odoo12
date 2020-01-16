@@ -304,7 +304,7 @@ class MagentoBackend(models.Model):
             self.env.cr.execute("""INSERT INTO magento_website (name, code,backend_id,external_id,create_date, write_date,create_uid,write_uid)
                                         VALUES (%s, %s, %s, %s, %s ,%s, %s, %s) ON CONFLICT (backend_id, external_id) DO UPDATE SET (name,code)=(EXCLUDED.name,EXCLUDED.code) RETURNING id""",
                                 (website['name'], website['code'], backend_id, website['id'],
-                                 datetime.datetime.today(), datetime.datetime.today(), self.env.uid, self.env.uid))
+                                 datetime.today(), datetime.today(), self.env.uid, self.env.uid))
 
             # web = self.env['magento.website'].create({
             #     'name': website['name'],
@@ -370,14 +370,14 @@ class MagentoBackend(models.Model):
                     customers = cus.list_gt_updated_at(sync_date)
                     if len(customers['items']) > 0:
                         pull_history.write({
-                            'sync_date': datetime.datetime.today()
+                            'sync_date': datetime.today()
                         })
 
                 else:
                     # first pull
                     self.env['magento.pull.history'].create({
                         'name': 'customers',
-                        'sync_date': datetime.datetime.today(),
+                        'sync_date': datetime.today(),
                         'backend_id': backend_id
                     })
                     customers = cus.list(page_size, current_page)
@@ -443,14 +443,14 @@ class MagentoBackend(models.Model):
                 # second pull
                 pro.update_product_categories(product_categories, backend_id, self)
                 pull_product_category_history.write({
-                    'sync_date': datetime.datetime.today()
+                    'sync_date': datetime.today()
                 })
             else:
                 # first pull
                 pro.insert_product_category(product_categories, backend_id, self)
                 self.env['magento.pull.history'].create({
                     'name': 'categories',
-                    'sync_date': datetime.datetime.today(),
+                    'sync_date': datetime.today(),
                     'backend_id': backend_id
                 })
 
@@ -467,14 +467,14 @@ class MagentoBackend(models.Model):
                             products = pro.list_gt_updated_product(sync_date, 'eq')
                             if len(products['items']) > 0:
                                 pull_history_configurable_product.write({
-                                    'sync_date': datetime.datetime.today()
+                                    'sync_date': datetime.today()
                                 })
 
                         else:
                             # first pull
                             self.env['magento.pull.history'].create({
                                 'name': 'configurable_product',
-                                'sync_date': datetime.datetime.today(),
+                                'sync_date': datetime.today(),
                                 'backend_id': backend_id
                             })
                             products = pro.list_product(page_size, current_page, 'configurable', 'eq')
@@ -500,13 +500,13 @@ class MagentoBackend(models.Model):
                         products = pro.list_gt_updated_product(sync_date, 'neq')
                         if len(products['items']) > 0:
                             pull_history_normal_product.write({
-                                'sync_date': datetime.datetime.today()
+                                'sync_date': datetime.today()
                             })
                     else:
                         # first pull
                         self.env['magento.pull.history'].create({
                             'name': 'normal_product',
-                            'sync_date': datetime.datetime.today(),
+                            'sync_date': datetime.today(),
                             'backend_id': backend_id
                         })
                         products = pro.list_product(page_size, current_page, 'configurable', 'neq')
@@ -605,7 +605,7 @@ class MagentoBackend(models.Model):
                     # first pull
                     self.env['magento.pull.history'].create({
                         'name': 'sale_orders',
-                        'sync_date': datetime.datetime.today(),
+                        'sync_date': datetime.today(),
                         'backend_id': backend_id
                     })
                     orders_pull = order.list(page_size, current_page)
@@ -681,7 +681,7 @@ class MagentoBackend(models.Model):
                 order.import_shipment(shipments, backend_id, context=self)
                 if len(shipments) > 0:
                     pull_shipments_history.write({
-                        'sync_date': datetime.datetime.today()
+                        'sync_date': datetime.today()
                     })
                 # order_cancel = order.list_order_cancel_updated(updated_at=sync_date)
                 # print(order_cancel)
@@ -690,7 +690,7 @@ class MagentoBackend(models.Model):
                 shipments = order.listShipment()
                 self.env['magento.pull.history'].create({
                     'name': 'shipments',
-                    'sync_date': datetime.datetime.today(),
+                    'sync_date': datetime.today(),
                     'backend_id': backend_id
                 })
                 order.import_shipment(shipments, backend_id, context=self)
@@ -765,13 +765,13 @@ class MagentoBackend(models.Model):
             #         sync_date = pull_history.sync_date
             #         invoice = invoices.list_gt_updated_at(sync_date)
             #         pull_history.write({
-            #             'sync_date': datetime.datetime.today()
+            #             'sync_date': datetime.today()
             #         })
             #     else:
             #         # first pull
             #         self.env['magento.pull.history'].create({
             #             'name': 'invoice',
-            #             'sync_date': datetime.datetime.today(),
+            #             'sync_date': datetime.today(),
             #             'backend_id': backend_id
             #         })
             #         invoice = invoices.list(page_size, current_page)
@@ -798,14 +798,14 @@ class MagentoBackend(models.Model):
                 print(invoice)
                 if len(invoice['items']) > 0:
                     pull_history.write({
-                        'sync_date': datetime.datetime.today()
+                        'sync_date': datetime.today()
                     })
 
             else:
                 # first pull
                 self.env['magento.pull.history'].create({
                     'name': 'invoice',
-                    'sync_date': datetime.datetime.today(),
+                    'sync_date': datetime.today(),
                     'backend_id': backend_id
                 })
                 invoice = invoices.list_all()
@@ -1052,14 +1052,14 @@ class MagentoBackend(models.Model):
             self = self.env['magento.backend'].search([], limit=1)
 
         # print('\n\n\n\n')
-        # print("start fetch at " + str(datetime.datetime.now()))
+        # print("start fetch at " + str(datetime.now()))
         # time.sleep(120)
         # time.sleep(120)f
-        # print("start fetch at 1111 " + str(datetime.datetime.now()))
+        # print("start fetch at 1111 " + str(datetime.now()))
 
         # search and check if = false then run
         if not self.auto_fetching:
-            print("start fetch at " + str(datetime.datetime.now()))
+            print("start fetch at " + str(datetime.now()))
             self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = TRUE WHERE id = %s""", (self.id,))
             self.env.cr.commit()
             # try:
@@ -1093,4 +1093,4 @@ class MagentoBackend(models.Model):
             self.fetch_sale_orders()
             self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = FALSE WHERE id = %s""", (self.id,))
             self.env.cr.commit()
-            print("end fetch at " + str(datetime.datetime.now()))
+            print("end fetch at " + str(datetime.now()))
