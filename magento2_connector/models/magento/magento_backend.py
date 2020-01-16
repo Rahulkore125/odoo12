@@ -1,5 +1,5 @@
 import datetime
-from datetime import date
+from datetime import date, datetime
 
 import math
 
@@ -585,14 +585,22 @@ class MagentoBackend(models.Model):
 
                 if pull_history:
                     # second pull
+                    orders = []
                     sync_date = pull_history.sync_date
-
-                    orders = order.list_gt_created_at_after_sync(sync_date)
-                    print(orders)
-                    if len(orders['items']) > 0:
-                        pull_history.write({
-                            'sync_date': datetime.datetime.today()
-                        })
+                    time_pull = datetime(sync_date.year, month=sync_date.month,
+                                         day=sync_date.day, hour=00, minute=00, second=00)
+                    orders_pull = order.list_gt_created_at_after_sync(time_pull)
+                    if len(orders_pull['items']) > 0:
+                        for e in orders_pull['items']:
+                            existed_order = self.env['magento.sale.order'].search(
+                                [('external_id', '=', int(e['items'][0]['order_id']))])
+                            if not len(existed_order) > 0:
+                                orders.append(e)
+                        print(orders)
+                        if len(orders) > 0:
+                            pull_history.write({
+                                'sync_date': datetime.today()
+                            })
                 else:
                     # first pull
                     self.env['magento.pull.history'].create({
@@ -600,20 +608,24 @@ class MagentoBackend(models.Model):
                         'sync_date': datetime.datetime.today(),
                         'backend_id': backend_id
                     })
-                    orders = order.list(page_size, current_page)
+                    orders_pull = order.list(page_size, current_page)
+                    orders = []
+                    for e in orders_pull:
+                        orders.append(e)
 
-                total_amount = orders['total_count']
-                order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
-                total_page = total_amount / page_size
+                total_amount = len(orders)
+                if total_amount > 0:
+                    order.importer_sale(orders, backend_id, backend_name, prefix_order, context=self)
+                    # total_page = total_amount / page_size
 
-                if 0 < total_page < 1:
-                    total_page = 1
-                else:
-                    total_page = math.ceil(total_page)
-
-                for page in range(1, total_page):
-                    orders = order.list(page_size, page + 1)
-                    order.importer_sale(orders['items'], backend_id, backend_name, prefix_order, context=self)
+                    # if 0 < total_page < 1:
+                    #     total_page = 1
+                    # else:
+                    #     total_page = math.ceil(total_page)
+                    #
+                    # for page in range(1, total_page):
+                    #     orders = order.list(page_size, page + 1)
+                    #     order.importer_sale(orders, backend_id, backend_name, prefix_order, context=self)
 
                 # page_size = 10
                 # # for page in range(1, total_page):
@@ -907,36 +919,17 @@ class MagentoBackend(models.Model):
         pull_history = self.env['magento.pull.history'].search(
             [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
         orders_updated = order.list_order_updated_at_after_sync(pull_history.sync_date)
-        # self.fetch_sale_orders()
-        print(orders_updated)
+
         for e in orders_updated['items']:
             exist_order = self.env['magento.sale.order'].search([('external_id', '=', e['entity_id'])])
-            print(exist_order)
             if len(exist_order) == 0:
                 pass
             else:
                 if e['state'] == 'complete' and exist_order.state in ['processing', 'shipping']:
-                    # self.fetch_shipments()
-                    # self.fetch_invoice()
+
                     for stock_picking in exist_order.picking_ids:
                         if stock_picking.state != 'done':
                             stock_picking.action_cancel()
-                    # for invoice in exist_order.invoice_ids:
-                    #     if invoice.state == 'open':
-                    #         account_payment = self.env['account.payment'].sudo().create({
-                    #             'amount': invoice.amount_total,
-                    #             'currency_id': invoice.currency_id.id,
-                    #             'payment_date': invoice.date,
-                    #             'journal_id': payment_journal,
-                    #             'communication': invoice.number,
-                    #             'invoice_ids': [(6, 0, [invoice.id])],
-                    #             'payment_method_id': self.env.ref('payment.account_payment_method_electronic_in').id,
-                    #             'payment_type': 'inbound',
-                    #             'partner_type': 'customer',
-                    #             'partner_id': invoice.partner_id.id,
-                    #         })
-                    #         self.env['account.payment'].sudo().browse(account_payment.id).action_validate_invoice_payment()
-
                     for invoice in exist_order.invoice_ids:
                         if invoice.state == 'open':
                             if exist_order.payment_method == 'cod':
@@ -954,7 +947,6 @@ class MagentoBackend(models.Model):
                                 'payment_method_id': 1,
                                 'partner_id': invoice.partner_id.id
                             })
-                            print(payment)
                             payment.action_validate_invoice_payment()
                     exist_order.write({
                         'state': 'complete',
