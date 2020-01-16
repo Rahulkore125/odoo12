@@ -597,8 +597,8 @@ class MagentoBackend(models.Model):
                             if not len(existed_order) > 0:
                                 orders.append(e)
                         print(orders)
-                        if len(orders) > 0:
-                            pull_history.write({
+
+                    pull_history.write({
                                 'sync_date': datetime.today()
                             })
                 else:
@@ -918,7 +918,9 @@ class MagentoBackend(models.Model):
         # payment_journal = self.payment_journal.id
         pull_history = self.env['magento.pull.history'].search(
             [('backend_id', '=', backend_id), ('name', '=', 'sale_orders')])
-        orders_updated = order.list_order_updated_at_after_sync(pull_history.sync_date)
+        time_pull = datetime(pull_history.sync_date.year, month=pull_history.sync_date.month,
+                             day=pull_history.sync_date.day, hour=00, minute=00, second=00)
+        orders_updated = order.list_order_updated_at_after_sync(time_pull)
 
         for e in orders_updated['items']:
             exist_order = self.env['magento.sale.order'].search([('external_id', '=', e['entity_id'])])
