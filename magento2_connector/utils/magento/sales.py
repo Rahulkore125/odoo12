@@ -74,12 +74,11 @@ class Order(Client):
             else:
                 default_magento_partner_odoo_id = default_magento_partner_odoo.id
 
-            i = 0
-            print(len(orders))
+
+
             for order in orders:
                 # odoo
                 partner_id = context.env.ref('magento2_connector.create_customer_guest').id
-                i += 1
 
                 if order['customer_group_id'] == 0:
                     customers = []
