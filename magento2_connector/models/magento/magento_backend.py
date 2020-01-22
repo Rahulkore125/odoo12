@@ -599,8 +599,8 @@ class MagentoBackend(models.Model):
                         print(orders)
 
                     pull_history.write({
-                                'sync_date': datetime.today()
-                            })
+                        'sync_date': datetime.today()
+                    })
                 else:
                     # first pull
                     self.env['magento.pull.history'].create({
@@ -965,6 +965,7 @@ class MagentoBackend(models.Model):
                         elif stock_picking.state == 'done':
                             new_picking_id, pick_type_id = self.env['stock.return.picking'].with_context(
                                 active_model='stock.picking', active_id=stock_picking.id).create({})._create_returns()
+
                             ctx = dict(self.env.context)
 
                             ctx.update({
@@ -978,6 +979,7 @@ class MagentoBackend(models.Model):
                             })
 
                             picking = self.env['stock.picking'].search([('id', '=', new_picking_id)])
+
                             for move_line in picking.move_lines:
                                 move_line.quantity_done = move_line.product_uom_qty
                             picking.action_done()
@@ -985,6 +987,9 @@ class MagentoBackend(models.Model):
 
                             picking.date_return = date.today()
 
+                            for e in picking.move_ids_without_package:
+                                if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+                                    e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity + e.quantity_done * e.product_id.deduct_amount_parent_product
                             origin_picking = self.env['stock.picking'].search(
                                 [('id', '=', stock_picking.id)])
                             origin_picking.has_return_picking = True

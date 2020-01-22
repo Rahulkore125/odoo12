@@ -70,6 +70,7 @@ class ProductProduct(models.Model):
                                         'product_id': g,
                                         'new_quantity': template_qty[f]['qty'] / product.deduct_amount_parent_product,
                                     })
+                                    print(template_qty[f]['qty'])
                                     inventory_wizard.change_product_qty()
                                 else:
                                     pass
