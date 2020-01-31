@@ -46,7 +46,7 @@ class Order(Client):
                                                                                                     'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
 
     def importer_sale(self, orders, backend_id, backend_name, prefix_order, context=None):
-        if orders:
+        if len(orders) > 0:
             sale_orders = []
             magento_sale_orders = []
             shipment_orders_lines = []
@@ -73,10 +73,13 @@ class Order(Client):
                         default_magento_partner_odoo_id = new_magento_res_partner.id
             else:
                 default_magento_partner_odoo_id = default_magento_partner_odoo.id
-            print(orders)
+
+
+
             for order in orders:
                 # odoo
                 partner_id = context.env.ref('magento2_connector.create_customer_guest').id
+
                 if order['customer_group_id'] == 0:
                     customers = []
                     # billing_address
@@ -296,8 +299,9 @@ class Order(Client):
                 else:
                     state = 'N/A'
 
+                print(order['state'])
                 if order['state'] in ['processing', 'shipping', 'complete']:
-                # get shipment_amount and shipment_method
+                    # get shipment_amount and shipment_method
                     shipment_amount = order['extension_attributes']['shipping_assignments'][0]['shipping']['total'][
                         'shipping_amount']
                     if 'method' in order['extension_attributes']['shipping_assignments'][0]['shipping']:
@@ -307,7 +311,8 @@ class Order(Client):
                     # magento_sale_orders.append((store_id, backend_id, order_id, shipment_amount, shipment_method, state))
 
                     magento_sale_orders.append(
-                        (store_id, backend_id, order_id, shipment_amount, shipment_method, order['state'], order['status']))
+                        (store_id, backend_id, order_id, shipment_amount, shipment_method, order['state'],
+                         order['status']))
 
                     product_items = order['items']
                     order_lines = []
@@ -350,7 +355,8 @@ class Order(Client):
                                         product_id = context.env.ref(
                                             'magento2_connector.magento_sample_product_consumable').id
                                     else:
-                                        product_id = context.env.ref('magento2_connector.magento_sample_product_service').id
+                                        product_id = context.env.ref(
+                                            'magento2_connector.magento_sample_product_service').id
                                 # insert in sale_order_line
                                 # neu order item co truong parent_item_id va parent_item_id > 0
                             item_id_of_product = product_item['item_id']
@@ -375,7 +381,8 @@ class Order(Client):
                                             'tax_id': [(6, 0, [])]}))
 
                     if shipment_method == 'flatrate_flatrate':
-                        shipment_product_product = context.env.ref('magento2_connector.magento_flat_rate_shipping_product')
+                        shipment_product_product = context.env.ref(
+                            'magento2_connector.magento_flat_rate_shipping_product')
                         shipment_product_product_id = shipment_product_product.id
                         shipment_product_product_name = shipment_product_product.name
                         delivery_method = context.env['delivery.carrier'].search(
@@ -423,13 +430,14 @@ class Order(Client):
                                                    'product_uom': 1,
                                                    'tax_id': [(4, tax_percent_id.id)],
                                                    'is_delivery': False}))
-                        order_lines.append((0, 0, {'name': "To keep correct amount on Tax (for Accounting) and grant total",
-                                                   'price_unit': -tax_amount,
-                                                   'price_subtotal': -tax_amount,
-                                                   'product_id': tax_fake_product_id.id,
-                                                   'product_uom_qty': 1,
-                                                   'product_uom': 1,
-                                                   'is_delivery': False}))
+                        order_lines.append(
+                            (0, 0, {'name': "To keep correct amount on Tax (for Accounting) and grant total",
+                                    'price_unit': -tax_amount,
+                                    'price_subtotal': -tax_amount,
+                                    'product_id': tax_fake_product_id.id,
+                                    'product_uom_qty': 1,
+                                    'product_uom': 1,
+                                    'is_delivery': False}))
                     if coupon_code != '':
                         discount_amount = order['discount_amount']
                         order_line_discount = context.env.ref('magento2_connector.discount_record')
@@ -450,36 +458,37 @@ class Order(Client):
 
                     if partner_id == context.env.ref('magento2_connector.create_customer_guest').id:
                         old_partner = context.env['res.partner'].search(
-                            [('email', '=', order['customer_email']), ('active', '=', True), '|', ('type', '=', 'contact'),
+                            [('email', '=', order['customer_email']), ('active', '=', True), '|',
+                             ('type', '=', 'contact'),
                              ('type', '=', False)])
                         if len(old_partner) > 0:
                             partner_id = old_partner.ids[0]
                         else:
                             partner_id = partner_invoice_id
 
-
                     sale_orders.append({'information':
-                                                {'name': name,
-                                                 'partner_id': partner_id,
-                                                 'partner_invoice_id': partner_invoice_id,
-                                                 'partner_shipping_id': partner_shipping_id,
-                                                 'pricelist_id': product_price_list_id,
-                                                 # 'state': status,
-                                                 'confirmation_date': order['created_at'],
-                                                 'order_line': order_lines if len(order_lines) > 0 else '',
-                                                 'has_delivery': True if shipment_method else '',
-                                                 'carrier_id': carrier_id if carrier_id is not None else False,
-                                                 'is_magento_sale_order': True,
-                                                 'currency_id': currency,
-                                                 'payment_method': payment_method
-                                                 # 'note': ("Apply discount code:" + str(coupon_code)) if coupon_code != '' else None
-                                                 },
-                                            'status': state
-                                            })
+                                            {'name': name,
+                                             'partner_id': partner_id,
+                                             'partner_invoice_id': partner_invoice_id,
+                                             'partner_shipping_id': partner_shipping_id,
+                                             'pricelist_id': product_price_list_id,
+                                             # 'state': status,
+                                             'confirmation_date': order['created_at'],
+                                             'order_line': order_lines if len(order_lines) > 0 else '',
+                                             'has_delivery': True if shipment_method else '',
+                                             'carrier_id': carrier_id if carrier_id is not None else False,
+                                             'is_magento_sale_order': True,
+                                             'currency_id': currency,
+                                             'payment_method': payment_method
+                                             # 'note': ("Apply discount code:" + str(coupon_code)) if coupon_code != '' else None
+                                             },
+                                        'status': state
+                                        })
                     # trường hợp address được add trên front end magento, sẽ được cập nhật khi có sale order ship tới địa chỉ này
                     if 'address' in order['extension_attributes']['shipping_assignments'][0][
                         'shipping'] and 'customer_id' in order:
-                        shipping_address = order['extension_attributes']['shipping_assignments'][0]['shipping']['address']
+                        shipping_address = order['extension_attributes']['shipping_assignments'][0]['shipping'][
+                            'address']
                         if 'customer_address_id' in shipping_address:
                             customer_address_id = shipping_address['customer_address_id']
                             current_customer_id = order['customer_id']
@@ -500,9 +509,11 @@ class Order(Client):
                                     shipping_address['firstname'] + " " + shipping_address['lastname'],
                                     shipping_address['street'][0],
                                     shipping_address['postcode'], shipping_address['city'], shipping_address_state_id,
-                                    shipping_address_country_id, shipping_address['email'], shipping_address['telephone'],
+                                    shipping_address_country_id, shipping_address['email'],
+                                    shipping_address['telephone'],
                                     True,
-                                    'delivery', current_customer_id, customer_address_id, True, True, current_customer_id)
+                                    'delivery', current_customer_id, customer_address_id, True, True,
+                                    current_customer_id)
                                 new_customer.append(shipping_address_data)
                                 context.env.cr.execute(
                                     """INSERT INTO res_partner (name, street,zip,city,state_id,country_id, email,phone, active,type,magento_customer_id,magento_address_id,customer,is_from_magento,magento_id) VALUES {values} RETURNING id""".format(
@@ -544,7 +555,8 @@ class Order(Client):
                                     shipping_address_data = (
                                         shipping_address['firstname'] + " " + shipping_address['lastname'],
                                         shipping_address['street'][0],
-                                        shipping_address['postcode'], shipping_address['city'], shipping_address_state_id,
+                                        shipping_address['postcode'], shipping_address['city'],
+                                        shipping_address_state_id,
                                         shipping_address_country_id, shipping_address['email'],
                                         shipping_address['telephone'],
                                         True,
@@ -587,6 +599,7 @@ class Order(Client):
             sale_order_ids = []
             sale_order_created = []
 
+            print(len(sale_orders))
             if sale_orders and len(sale_orders) > 0:
                 # for e in sale_orders:
                 for e in sale_orders:
