@@ -512,8 +512,8 @@ class MagentoBackend(models.Model):
                         })
                         products = pro.list_product(page_size, current_page, 'configurable', 'neq')
 
-                    #todo
-                    #truong hop dac biet voi drinkies it san pham nen ko can chia thanh tung phan de fetch nua
+                    # todo
+                    # truong hop dac biet voi drinkies it san pham nen ko can chia thanh tung phan de fetch nua
 
                     total_count = products['total_count']
                     pro.insert_not_configurable_product(products['items'], backend_id, url, token, self)
@@ -525,7 +525,7 @@ class MagentoBackend(models.Model):
                     #         products = pro.list_product(page_size, page + 1, 'configurable', 'neq')
                     #         # print('22222')
                     #         pro.insert_not_configurable_product(products['items'], backend_id, url, token, self)
-                            # print('333333')
+                    # print('333333')
 
             return {
                 'type': 'ir.actions.act_window',
@@ -554,7 +554,7 @@ class MagentoBackend(models.Model):
             if not self.id:
                 self = self.env['magento.backend'].search([], limit=1)
             self.fetch_products()
-            # self.fetch_customers()
+            self.fetch_customers()
             # self.fetch_tax()
             self.fetch_order_update()
             # self.fetch_invoice()
