@@ -46,7 +46,8 @@ class SaleHnkReport(models.Model):
                 today_date = datetime(year=self.to_date_report.year, month=self.to_date_report.month,
                                       day=self.to_date_report.day, hour=24 - time_offset, minute=00, second=00)
                 previous_day_date = datetime(year=self.from_date_report.year, month=self.from_date_report.month,
-                                             day=self.from_date_report.day, hour=24 - time_offset, minute=00, second=00) + timedelta(days=-1)
+                                             day=self.from_date_report.day, hour=24 - time_offset, minute=00,
+                                             second=00) + timedelta(days=-1)
                 # print(today_date)
                 # print(previous_day_date)
         elif self.compute_at_date == 0:
@@ -54,9 +55,7 @@ class SaleHnkReport(models.Model):
                                   day=self.date_report.day, hour=24 - time_offset, minute=00, second=00)
             previous_day_date = today_date + timedelta(days=-1)
             previous_day_date = datetime(previous_day_date.year, month=previous_day_date.month,
-                                  day=previous_day_date.day, hour=24 - time_offset, minute=00, second=00)
-            print(today_date)
-            print(previous_day_date)
+                                         day=previous_day_date.day, hour=24 - time_offset, minute=00, second=00)
 
         start_order_date = datetime(year=previous_day_date.year, month=previous_day_date.month,
                                     day=previous_day_date.day, hour=24 - time_offset, minute=00, second=00)
@@ -67,6 +66,11 @@ class SaleHnkReport(models.Model):
             [('create_date', '>', start_order_date), ('create_date', '<', end_order_date)])
 
         heineken_product = self.env['product.product'].search([('is_heineken_product', '=', True)])
+        magento_demo_simple_product = self.env.ref('magento2_connector.magento_sample_product_consumable')
+        magento_demo_service_product = self.env.ref('magento2_connector.magento_sample_product_service')
+        heineken_product += magento_demo_service_product
+        heineken_product += magento_demo_simple_product
+
         qty_previous_day = self.env['product.product'].browse(heineken_product.ids)._compute_quantities_dict(
             self._context.get('lot_id'),
             self._context.get(
