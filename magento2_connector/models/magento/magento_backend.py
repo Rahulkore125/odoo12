@@ -426,7 +426,7 @@ class MagentoBackend(models.Model):
             if not self.id:
                 self = self.env['magento.backend'].search([], limit=1)
             # fetch attr first
-            self.fetch_product_attribute()
+            # self.fetch_product_attribute()
             backend_id = self.id
             url = self.web_url
             token = self.access_token
@@ -480,13 +480,14 @@ class MagentoBackend(models.Model):
                             products = pro.list_product(page_size, current_page, 'configurable', 'eq')
 
                         total_count = products['total_count']
+                        # truong hop dac biet voi drinkies it san pham nen ko can chia thanh tung phan de fetch nua
                         pro.insert_configurable_product(products['items'], backend_id, url, token, self)
 
-                        total_page = get_current_page(total_count, page_size)
-                        if total_page > 0:
-                            for page in range(1, total_page):
-                                products = pro.list_product(page_size, page + 1, 'configurable', 'eq')
-                                pro.insert_configurable_product(products['items'], backend_id, url, token)
+                        # total_page = get_current_page(total_count, page_size)
+                        # if total_page > 0:
+                        #     for page in range(1, total_page):
+                        #         products = pro.list_product(page_size, page + 1, 'configurable', 'eq')
+                        #         pro.insert_configurable_product(products['items'], backend_id, url, token)
                     except Exception as e:
                         print(e)
                         raise UserError(_('fetch product configurable %s or fetch product attribute') % tools.ustr(e))
@@ -511,24 +512,21 @@ class MagentoBackend(models.Model):
                         })
                         products = pro.list_product(page_size, current_page, 'configurable', 'neq')
 
+                    #todo
+                    #truong hop dac biet voi drinkies it san pham nen ko can chia thanh tung phan de fetch nua
+
                     total_count = products['total_count']
                     pro.insert_not_configurable_product(products['items'], backend_id, url, token, self)
 
-                    total_page = get_current_page(total_count, page_size)
-                    if total_page > 0:
-                        for page in range(1, total_page):
-                            # print('11111')
-                            products = pro.list_product(page_size, page + 1, 'configurable', 'neq')
-                            # print('22222')
-                            pro.insert_not_configurable_product(products['items'], backend_id, url, token, self)
+                    # total_page = get_current_page(total_count, page_size)
+                    # if total_page > 0:
+                    #     for page in range(1, total_page):
+                    #         # print('11111')
+                    #         products = pro.list_product(page_size, page + 1, 'configurable', 'neq')
+                    #         # print('22222')
+                    #         pro.insert_not_configurable_product(products['items'], backend_id, url, token, self)
                             # print('333333')
 
-                    # self.env['product.product.product'].create()
-                    # else:
-                    #     print("sai me roi")
-                    # except Exception as e:
-                    #     print(e)
-                    #     raise UserError(_('fetch normal product %s') % tools.ustr(e))
             return {
                 'type': 'ir.actions.act_window',
                 'view_type': 'form',
@@ -555,7 +553,7 @@ class MagentoBackend(models.Model):
         if not self.auto_fetching:
             if not self.id:
                 self = self.env['magento.backend'].search([], limit=1)
-            # self.fetch_products()
+            self.fetch_products()
             # self.fetch_customers()
             # self.fetch_tax()
             self.fetch_order_update()
