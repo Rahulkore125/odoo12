@@ -554,7 +554,7 @@ class MagentoBackend(models.Model):
             if not self.id:
                 self = self.env['magento.backend'].search([], limit=1)
             self.fetch_products()
-            self.fetch_customers()
+            # self.fetch_customers()
             # self.fetch_tax()
             self.fetch_order_update()
             # self.fetch_invoice()
