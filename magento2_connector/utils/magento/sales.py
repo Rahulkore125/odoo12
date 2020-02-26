@@ -451,6 +451,8 @@ class Order(Client):
                         payment_method = 'online_payment'
                     elif order['payment']['method'] == 'cashondelivery':
                         payment_method = 'cod'
+                    else:
+                        payment_method = False
 
                     if partner_id == context.env.ref('magento2_connector.create_customer_guest').id:
                         old_partner = context.env['res.partner'].search(
