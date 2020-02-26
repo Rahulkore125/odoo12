@@ -35,14 +35,10 @@ class Order(Client):
                            'searchCriteria[filter_groups][0][filters][1][value]=' + str(updated_at) + '&'
                                                                                                       'searchCriteria[filter_groups][0][filters][1][condition_type]=gt')
 
-    def list_gt_update_at_shipment(self, updated_at):
-        print('rest/V1/shipments',
-              'searchCriteria[filter_groups][0][filters][0][field]=created_at&'
-              'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
-                                                                                         'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
+    def list_gt_update_at_shipment(self, created_at):
         return self.call('rest/V1/shipments',
                          'searchCriteria[filter_groups][0][filters][0][field]=created_at&'
-                         'searchCriteria[filter_groups][0][filters][0][value]=' + str(updated_at) + '&'
+                         'searchCriteria[filter_groups][0][filters][0][value]=' + str(created_at) + '&'
                                                                                                     'searchCriteria[filter_groups][0][filters][0][condition_type]=gt')
 
     def importer_sale(self, orders, backend_id, backend_name, prefix_order, context=None):
