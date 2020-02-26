@@ -33,6 +33,8 @@ class SaleOrder(models.Model):
                     journal_id = self.env['account.journal'].search([('code', '=', 'CSH1')]).id
                 elif rec.payment_method == 'online_payment':
                     journal_id = self.env['account.journal'].search([('code', '=', 'BNK1')]).id
+                else:
+                    journal_id = False
                 payment = self.env['account.payment'].create({
                     'invoice_ids': [(4, e, None)],
                     'amount': invoice.amount_total,
