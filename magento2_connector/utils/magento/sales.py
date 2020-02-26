@@ -602,17 +602,17 @@ class Order(Client):
                 # for e in sale_orders:
                 for e in sale_orders:
                     res = context.env['sale.order'].sudo().create(e['information'])
-
-                    res.order_reference_id = res.name
-                    res.team_id = drinkies_sale_team
-                    # res.action_confirm()
-                    # context.env.cr.execute(
-                    #     """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
-                    sale_order_ids.append((res.id,))
-                    sale_order_created.append({
-                        'information': res,
-                        'status': e['status']
-                    })
+                    if len(res) > 0:
+                        res.order_reference_id = res.name
+                        res.team_id = drinkies_sale_team
+                        # res.action_confirm()
+                        # context.env.cr.execute(
+                        #     """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), res.id))
+                        sale_order_ids.append((res.id,))
+                        sale_order_created.append({
+                            'information': res,
+                            'status': e['status']
+                        })
 
                 magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
                 if magento_sale_orders and len(magento_sale_orders) > 0:
