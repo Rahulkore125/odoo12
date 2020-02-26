@@ -29,10 +29,12 @@ class SaleOrder(models.Model):
                 # else:
                 if invoice.state != 'open':
                     invoice.state = 'open'
-                if rec.payment_method == 'cod' and rec.payment_method == False:
+                if rec.payment_method == 'cod':
                     journal_id = self.env['account.journal'].search([('code', '=', 'CSH1')]).id
                 elif rec.payment_method == 'online_payment':
                     journal_id = self.env['account.journal'].search([('code', '=', 'BNK1')]).id
+                else:
+                    journal_id = self.env['account.journal'].search([('code', '=', 'CSH1')]).id
 
                 payment = self.env['account.payment'].create({
                     'invoice_ids': [(4, e, None)],
