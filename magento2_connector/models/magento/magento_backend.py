@@ -1067,8 +1067,8 @@ class MagentoBackend(models.Model):
         self.env.cr.commit()
         if not self.auto_fetching:
             print("start fetch at " + str(datetime.now()))
-            self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = TRUE WHERE id = %s""", (self.id,))
-            self.env.cr.commit()
+            # self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = TRUE WHERE id = %s""", (self.id,))
+            # self.env.cr.commit()
             # try:
             #     print(1)
             #     self.fetch_products()
