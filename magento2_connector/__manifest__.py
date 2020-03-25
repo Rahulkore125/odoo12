@@ -19,7 +19,7 @@
     'version': '2.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base', 'account', 'sale', 'sale_management', 'product', 'payment', 'delivery','sale_coupon'],
+    'depends': ['base', 'account', 'sale', 'sale_management', 'product', 'payment', 'delivery','sale_coupon', 'stock'],
 
     # always loaded
     'data': [
@@ -36,7 +36,7 @@
         'views/sale/sale_order_magento_filter_view.xml',
         'views/product/product_attributes_view.xml',
         'views/product/product_template.xml',
-
+        'views/location/stock_location.xml',
         'views/config/magento_operation.xml',
         'views/dashboard/website.xml',
         'views/dashboard/store.xml',

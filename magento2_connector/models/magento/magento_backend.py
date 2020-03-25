@@ -11,6 +11,7 @@ from ...utils.magento.invoice import Invoice
 from ...utils.magento.product import Product
 from ...utils.magento.rest import Client
 from ...utils.magento.sales import Order
+from ...utils.magento.location import Location
 
 TYPE2JOURNAL = {
     'out_invoice': 'sale',
@@ -21,14 +22,11 @@ TYPE2JOURNAL = {
 
 
 def get_current_page(total_count, page_size):
-    # print("total count la:",total_count)
     total_page = total_count / page_size
-    # print("how to page size:",page_size)
     if 0 < total_page < 1:
         total_page = 1
     else:
         total_page = math.ceil(total_page)
-    # print("total page la:",total_page)
     return total_page
 
 
@@ -489,7 +487,6 @@ class MagentoBackend(models.Model):
                         #         products = pro.list_product(page_size, page + 1, 'configurable', 'eq')
                         #         pro.insert_configurable_product(products['items'], backend_id, url, token)
                     except Exception as e:
-                        print(e)
                         raise UserError(_('fetch product configurable %s or fetch product attribute') % tools.ustr(e))
 
                     # Normal Product
@@ -517,15 +514,6 @@ class MagentoBackend(models.Model):
 
                     total_count = products['total_count']
                     pro.insert_not_configurable_product(products['items'], backend_id, url, token, self)
-
-                    # total_page = get_current_page(total_count, page_size)
-                    # if total_page > 0:
-                    #     for page in range(1, total_page):
-                    #         # print('11111')
-                    #         products = pro.list_product(page_size, page + 1, 'configurable', 'neq')
-                    #         # print('22222')
-                    #         pro.insert_not_configurable_product(products['items'], backend_id, url, token, self)
-                    # print('333333')
 
             return {
                 'type': 'ir.actions.act_window',
@@ -555,7 +543,7 @@ class MagentoBackend(models.Model):
                 self = self.env['magento.backend'].search([], limit=1)
             self.fetch_products()
             self.fetch_customers()
-            # self.fetch_tax()
+            self.fetch_tax()
             self.fetch_order_update()
             # self.fetch_invoice()
 
@@ -588,13 +576,13 @@ class MagentoBackend(models.Model):
                     time_pull = datetime(sync_date.year, month=sync_date.month,
                                          day=sync_date.day, hour=00, minute=00, second=00)
                     orders_pull = order.list_gt_created_at_after_sync(time_pull)
+
                     if len(orders_pull['items']) > 0:
                         for e in orders_pull['items']:
                             existed_order = self.env['magento.sale.order'].search(
                                 [('external_id', '=', int(e['items'][0]['order_id']))])
                             if not len(existed_order) > 0:
                                 orders.append(e)
-                        print(orders)
 
                     pull_history.write({
                         'sync_date': datetime.today()
@@ -675,7 +663,7 @@ class MagentoBackend(models.Model):
                 # second pull
                 sync_date = pull_shipments_history.sync_date
                 shipments = order.list_gt_update_at_shipment(sync_date)
-                print(shipments)
+
                 order.import_shipment(shipments, backend_id, context=self)
                 if len(shipments) > 0:
                     pull_shipments_history.write({
@@ -793,7 +781,7 @@ class MagentoBackend(models.Model):
                 # second pull
                 sync_date = pull_history.sync_date
                 invoice = invoices.list_gt_updated_at(sync_date)
-                print(invoice)
+
                 if len(invoice['items']) > 0:
                     pull_history.write({
                         'sync_date': datetime.today()
@@ -1049,6 +1037,22 @@ class MagentoBackend(models.Model):
                     })
                     self.env.cr.execute(
                         """UPDATE sale_order SET state = %s WHERE id = %s""", ('cancel', exist_order.odoo_id.id))
+
+    def fetch_source(self):
+        url = self.web_url
+        token = self.access_token
+        location = Location(url, token, True)
+        backend_id = self.id
+        pull_history = self.env['magento.pull.history'].search(
+            [('backend_id', '=', backend_id), ('name', '=', 'sources')])
+        sources = location.list_all_sources()
+        location.insert_source(sources['items'], backend_id, url, token, self)
+        if not len(pull_history) > 0:
+            self.env['magento.pull.history'].create({
+                'name': 'sources',
+                'sync_date': datetime.today(),
+                'backend_id': backend_id
+            })
 
     @api.multi
     def auto_fetch_magento_data(self):

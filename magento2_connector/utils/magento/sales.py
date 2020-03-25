@@ -74,8 +74,6 @@ class Order(Client):
             else:
                 default_magento_partner_odoo_id = default_magento_partner_odoo.id
 
-
-
             for order in orders:
                 # odoo
                 partner_id = context.env.ref('magento2_connector.create_customer_guest').id

@@ -15,3 +15,4 @@ access_magento_product_product,Magento product,model_magento_product_product,,1,
 access_magento_product_category,Magento product category,model_magento_product_category,,1,1,1,1
 access_magento_product_attribute,Magento product attribute,model_magento_product_attribute,,1,1,1,1
 access_magento_account_invoice,Magento invoice,model_magento_account_invoice,,1,1,1,1
+access_magento_source,Magento source,model_magento_source,,1,1,1,1

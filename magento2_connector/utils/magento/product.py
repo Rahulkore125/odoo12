@@ -210,8 +210,9 @@ class Product(Client):
         odoo_product_template = []
         magento_product_product = []
         for product in products:
-            product_exist = request.env['magento.product.product'].search([('external_id', '=', int(product['id']))])
-            #kiem tra product nay da duoc pull ve hay chua
+            print(product)
+            product_exist = request.env['magento.product.product'].search([('external_id', '=', product['id'])])
+            # kiem tra product nay da duoc pull ve hay chua
             if not len(product_exist) > 0:
                 extension_attributes = product['extension_attributes']
                 if 'configurable_product_links' in extension_attributes:

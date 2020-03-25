@@ -1,5 +1,5 @@
 from odoo import fields, models, api
-from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT, float_compare, UserError
+from odoo.tools import float_compare, UserError
 
 
 class SaleOrder(models.Model):
