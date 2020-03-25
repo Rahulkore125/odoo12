@@ -1,5 +1,3 @@
-from datetime import date
-
 from odoo import models, fields, api
 from odoo import tools
 from odoo.addons import decimal_precision as dp
@@ -43,47 +41,26 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).create(vals_list)
         return res
 
-    # @api.model
-    # def create(self, vals_list):
-    #     if 'pricelist_id' not in vals_list:
-    #         vals_list['pricelist_id'] = self.env.ref('product.pricelist').search([], limit=1).id
-    #     res = super(SaleOrder, self).create(vals_list)
-    #     return res
-
     # @api.multi
-    # @api.depends('order_line', 'estimate_discount_total')
-    # def compute_discount_total(self):
-    #     for rec in self:
-    #         sum = 0
-    #         for e in rec.order_line:
-    #             if e.is_reward_line:
-    #                 sum += abs(e.price_subtotal)
-    #         sum += rec.estimate_discount_total
-    #         rec.computed_discount_total = sum
-
-    @api.multi
-    def action_confirm(self):
-        result = super(SaleOrder, self).action_confirm()
-        for so in self:
-            # if so.is_magento_sale_order:
-            #     return result
-            # else:
-            stock_pickings = self.env['stock.picking'].search(
-                [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
-            for stock_picking in stock_pickings:
-                for move_line in stock_picking.move_lines:
-                    move_line.quantity_done = move_line.product_uom_qty
-                stock_picking.action_done()
-                stock_picking.date_done_delivery = date.today()
-
-                if stock_picking.is_return_picking:
-                    pass
-                else:
-                    for e in stock_picking.move_ids_without_package:
-                        if e.product_id.product_tmpl_id.multiple_sku_one_stock:
-                            e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity - e.quantity_done * e.product_id.deduct_amount_parent_product
-            self.date_confirm_order = date.today()
-            return result
+    # def action_confirm(self):
+    #     result = super(SaleOrder, self).action_confirm()
+    #     for so in self:
+    #         stock_pickings = self.env['stock.picking'].search(
+    #             [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
+    #         for stock_picking in stock_pickings:
+    #             for move_line in stock_picking.move_lines:
+    #                 move_line.quantity_done = move_line.product_uom_qty
+    #             stock_picking.action_done()
+    #             stock_picking.date_done_delivery = date.today()
+    #
+    #             if stock_picking.is_return_picking:
+    #                 pass
+    #             else:
+    #                 for e in stock_picking.move_ids_without_package:
+    #                     if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+    #                         e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity - e.quantity_done * e.product_id.deduct_amount_parent_product
+    #         self.date_confirm_order = date.today()
+    #         return result
 
     def _amount_all(self):
         """

@@ -13,6 +13,3 @@ class StockLocation(models.Model):
     is_from_magento = fields.Boolean(string=("Magento Source"), default=False)
     magento_source_code = fields.Char("Magento Source Code")
     postcode = fields.Char("Postcode")
-
-
-

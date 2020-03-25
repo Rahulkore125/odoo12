@@ -8,10 +8,10 @@ from odoo import tools, _
 from odoo.exceptions import ValidationError, UserError
 from ...utils.magento.customer import Customer, CustomerGroup
 from ...utils.magento.invoice import Invoice
+from ...utils.magento.location import Location
 from ...utils.magento.product import Product
 from ...utils.magento.rest import Client
 from ...utils.magento.sales import Order
-from ...utils.magento.location import Location
 
 TYPE2JOURNAL = {
     'out_invoice': 'sale',

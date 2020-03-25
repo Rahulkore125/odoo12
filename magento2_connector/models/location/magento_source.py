@@ -14,4 +14,3 @@ class MagentoSource(models.Model):
                                  string='Magento Website',
                                  ondelete='restrict')
     storeview_id = fields.Many2one('magento.storeview', string='Magento Store View')
-

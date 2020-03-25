@@ -9,7 +9,8 @@ class Location(Client):
 
     def insert_source(self, sources, backend_id, url, token, context=None):
         for source in sources:
-            odoo_location = context.env['stock.location'].search([('is_from_magento', '=', True), ('magento_source_code', '=', source['source_code'])])
+            odoo_location = context.env['stock.location'].search(
+                [('is_from_magento', '=', True), ('magento_source_code', '=', source['source_code'])])
             if len(odoo_location) > 0:
                 odoo_location.write({
                     'name': source['name'],
@@ -33,5 +34,3 @@ class Location(Client):
                     'odoo_id': odoo_location.id,
                     'backend_id': backend_id
                 })
-
-

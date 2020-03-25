@@ -1,5 +1,7 @@
 # -*- coding: UTF-8 -*-
 
+from datetime import date
+
 from .customer import get_state_id, get_country_id
 from ..magento.rest import Client
 
@@ -576,28 +578,9 @@ class Order(Client):
                                         (current_partner_id, magento_partner_odoo_id, backend_id))
 
             drinkies_sale_team = context.env.ref('advanced_sale.sale').id
-
-            # if sale_orders and len(sale_orders) > 0:
-            #     res = context.env['sale.order'].sudo().create(sale_orders[65])
-            # # res.action_confirm()
-            # res.order_reference_id = res.name
-            # res.team_id = drinkies_sale_team
-            # sale_order_ids = []
-            # for sale_order_id in res:
-            #     sale_order_ids.append((sale_order_id.id,))
-            #
-            # magento_sale_orders_mapped_id = tuple(map(lambda x, y: x + y, magento_sale_orders, sale_order_ids))
-            # if magento_sale_orde
-            # rs and len(magento_sale_orders) > 0:
-            #     context.env.cr.execute(
-            #         """INSERT INTO magento_sale_order (store_id, backend_id, external_id,shipment_amount,shipment_method, state,status,odoo_id) VALUES {values} RETURNING id""".format(
-            #             values=", ".join(["%s"] * len(magento_sale_orders_mapped_id))),
-            #         tuple(magento_sale_orders_mapped_id))
-
             sale_order_ids = []
             sale_order_created = []
 
-            print(len(sale_orders))
             if sale_orders and len(sale_orders) > 0:
                 # for e in sale_orders:
                 for e in sale_orders:
@@ -623,6 +606,28 @@ class Order(Client):
 
                 for e in sale_order_created:
                     e['information'].action_confirm()
+                    stock_pickings = e['information'].picking_ids
+                    if 'order_source_code' in order['extension_attributes']:
+                        source = context.env['stock.location'].search(
+                            [('magento_source_code', '=', order['extension_attributes']['order_source_code'])])
+                    else:
+                        source = []
+
+                    for stock_picking in stock_pickings:
+                        for move_line in stock_picking.move_lines:
+                            move_line.quantity_done = move_line.product_uom_qty
+
+                        for move_line_id in stock_picking.move_line_ids:
+                            if len(source) > 0:
+                                move_line_id.location_id = source.id
+                        stock_picking.action_done()
+                        stock_picking.date_done_delivery = date.today()
+                        if stock_picking.is_return_picking:
+                            pass
+                        else:
+                            for f in stock_picking.move_ids_without_package:
+                                if f.product_id.product_tmpl_id.multiple_sku_one_stock:
+                                    f.product_id.product_tmpl_id.origin_quantity = f.product_id.product_tmpl_id.origin_quantity - f.quantity_done * f.product_id.deduct_amount_parent_product
                     context.env.cr.execute(
                         """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), e['information'].id))
 
