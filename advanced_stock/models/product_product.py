@@ -49,33 +49,34 @@ class ProductProduct(models.Model):
         if to_date and to_date < (fields.Datetime.now() + timedelta(seconds=-10)):
             dates_in_the_past = True
 
-        if not dates_in_the_past:
-            for f in template_qty:
-                template = self.env['product.template'].search([('id', '=', f)])
-                length_variant = len(template.product_variant_ids) + 1
-                if template.multiple_sku_one_stock:
-                    if 'qty' in template_qty[f] and len(template_qty[f]) == length_variant:
-                        for g in template_qty[f]:
-                            if g != 'qty':
-                                product = self.env['product.product'].search([('id', '=', g)])
-                                if template_qty[f][g]['qty_available'] * product.deduct_amount_parent_product != \
-                                        template_qty[f]['qty']:
-                                    res[g][
-                                        'qty_available'] = template_qty[f]['qty'] / product.deduct_amount_parent_product
-                                    res[g][
-                                        'virtual_available'] = template_qty[f][
-                                                                   'qty'] / product.deduct_amount_parent_product
-
-                                    inventory_wizard = self.env['stock.change.product.qty'].create({
-                                        'product_id': g,
-                                        'new_quantity': template_qty[f]['qty'] / product.deduct_amount_parent_product,
-                                    })
-                                    print(template_qty[f]['qty'])
-                                    inventory_wizard.change_product_qty()
-                                else:
-                                    pass
-                    else:
-                        pass
-                else:
-                    pass
+        print()
+        # if not dates_in_the_past:
+        #     for f in template_qty:
+        #         template = self.env['product.template'].search([('id', '=', f)])
+        #         length_variant = len(template.product_variant_ids) + 1
+        #         if template.multiple_sku_one_stock:
+        #             if 'qty' in template_qty[f] and len(template_qty[f]) == length_variant:
+        #                 for g in template_qty[f]:
+        #                     if g != 'qty':
+        #                         product = self.env['product.product'].search([('id', '=', g)])
+        #                         if template_qty[f][g]['qty_available'] * product.deduct_amount_parent_product != \
+        #                                 template_qty[f]['qty']:
+        #                             res[g][
+        #                                 'qty_available'] = template_qty[f]['qty'] / product.deduct_amount_parent_product
+        #                             res[g][
+        #                                 'virtual_available'] = template_qty[f][
+        #                                                            'qty'] / product.deduct_amount_parent_product
+        #
+        #                             inventory_wizard = self.env['stock.change.product.qty'].create({
+        #                                 'product_id': g,
+        #                                 'new_quantity': template_qty[f]['qty'] / product.deduct_amount_parent_product,
+        #                             })
+        #                             print(template_qty[f]['qty'])
+        #                             inventory_wizard.change_product_qty()
+        #                         else:
+        #                             pass
+        #             else:
+        #                 pass
+        #         else:
+        #             pass
         return res
