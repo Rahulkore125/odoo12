@@ -23,6 +23,15 @@ class Client(object):
         res.raise_for_status()
         return res.json()
 
+    def post(self, resource_path, arguments):
+        url = '%s/%s' % (self._url, resource_path)
+        res = requests.post(
+            url, json=arguments, verify=self._verify_ssl,
+            headers={'Authorization': 'Bearer %s' % self._token,
+                     'Content-Type': 'application/json'})
+        # res.raise_for_status()
+        return res.json()
+
     def adapter_magento_id(self, table, backend_id, external_id, context=None):
         context.env.cr.execute("SELECT id FROM %s WHERE backend_id=%s AND external_id=%s LIMIT 1" % (
             table.strip("'"), backend_id, external_id))

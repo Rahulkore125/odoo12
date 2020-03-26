@@ -1,5 +1,8 @@
 from odoo import models, api, tools, _
 from odoo.tools import float_utils, float_compare
+from ...magento2_connector.utils.magento.rest import Client
+from odoo import tools
+from odoo.exceptions import UserError
 
 
 class ProductChangeQuantity(models.TransientModel):
@@ -28,6 +31,8 @@ class ProductChangeQuantity(models.TransientModel):
                 'location_id': wizard.location_id.id,
                 'line_ids': [(0, 0, line_data)],
             })
+            if wizard.location_id.is_from_magento:
+                pass
             inventory.action_validate()
         product = self.env['product.product'].search([('id', '=', line_data['product_id'])])
         if product.product_tmpl_id.multiple_sku_one_stock:
@@ -75,10 +80,27 @@ class Inventory(models.Model):
             inventory.mapped('move_ids').unlink()
             inventory.line_ids._generate_moves()
 
+            magento_backend = self.env['magento.backend'].search([])
             for e in inventory.line_ids:
                 if e.product_id.product_tmpl_id.multiple_sku_one_stock:
                     if e.product_id.id == e.product_id.product_tmpl_id.variant_manage_stock.id:
                         e.product_id.product_tmpl_id.origin_quantity = e.product_qty
+                if e.product_id.is_magento_product and inventory.location_id.is_from_magento:
+                    try:
+                        params = {
+                            "sourceItems": [
+                                {
+                                    "sku": e.product_id.default_code,
+                                    "source_code": inventory.location_id.magento_source_code,
+                                    "quantity": e.product_qty,
+                                    "status": 1
+                                }
+                            ]
+                        }
+                        client = Client(magento_backend.web_url, magento_backend.access_token, True)
+                        client.post('rest/V1/inventory/source-items', arguments=params)
+                    except Exception as a:
+                        raise UserError(('Can not update quantity product on source magento - %s') % tools.ustr(a))
 
 
 class InventoryLine(models.Model):

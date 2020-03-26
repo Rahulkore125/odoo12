@@ -966,8 +966,19 @@ class MagentoBackend(models.Model):
 
                             picking = self.env['stock.picking'].search([('id', '=', new_picking_id)])
 
+                            if 'order_source_code' in e['extension_attributes']:
+                                source = self.env['stock.location'].search(
+                                    [('magento_source_code', '=', e['extension_attributes']['order_source_code'])])
+                            else:
+                                source = []
+
                             for move_line in picking.move_lines:
                                 move_line.quantity_done = move_line.product_uom_qty
+
+                            for move_line_id in picking.move_line_ids:
+                                if len(source) > 0:
+                                    move_line_id.location_dest_id = source.id
+
                             picking.action_done()
                             picking.is_return_picking = True
 
