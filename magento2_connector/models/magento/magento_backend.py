@@ -541,6 +541,7 @@ class MagentoBackend(models.Model):
         if not self.auto_fetching:
             if not self.id:
                 self = self.env['magento.backend'].search([], limit=1)
+            self.fetch_source()
             self.fetch_products()
             self.fetch_customers()
             self.fetch_tax()
@@ -669,8 +670,7 @@ class MagentoBackend(models.Model):
                     pull_shipments_history.write({
                         'sync_date': datetime.today()
                     })
-                # order_cancel = order.list_order_cancel_updated(updated_at=sync_date)
-                # print(order_cancel)
+
             else:
                 # first pull
                 shipments = order.listShipment()
@@ -1070,12 +1070,6 @@ class MagentoBackend(models.Model):
         """ Automatic Pull Data From Instance Follow Standard Process"""
         if not self.id:
             self = self.env['magento.backend'].search([], limit=1)
-
-        # print('\n\n\n\n')
-        # print("start fetch at " + str(datetime.now()))
-        # time.sleep(120)
-        # time.sleep(120)f
-        # print("start fetch at 1111 " + str(datetime.now()))
 
         # search and check if = false then run
         self.env.cr.execute("""UPDATE magento_backend SET auto_fetching = FALSE WHERE id = %s""", (self.id,))

@@ -46,4 +46,3 @@ class SaleOrder(models.Model):
                 })
                 payment.action_validate_invoice_payment()
                 return result
-                print('done_cc')

@@ -192,8 +192,7 @@ class Product(Client):
             for product_tmpl_id in product_template_ids:
                 for product_product_id in product_tmpl_id.product_variant_ids:
                     odoo_product_product_ids.append(product_product_id.id)
-            print(odoo_product_template)
-            print(odoo_product_product_ids)
+
             if len(odoo_product_product_ids) == len(product_children):
                 context.env.cr.execute(
                     """INSERT INTO magento_product_product(odoo_id, external_id, backend_id) VALUES {values}""".
@@ -210,7 +209,6 @@ class Product(Client):
         odoo_product_template = []
         magento_product_product = []
         for product in products:
-            print(product)
             product_exist = request.env['magento.product.product'].search([('external_id', '=', product['id'])])
             # kiem tra product nay da duoc pull ve hay chua
             if not len(product_exist) > 0:

@@ -244,11 +244,9 @@ class Invoice(Client):
 
         if array_odoo_invoices and len(array_odoo_invoices) > 0:
             # invoice in odoo
-            print('create invoice')
-            print('cccccccc')
             invoices = context.env['account.invoice'].sudo().create(array_odoo_invoices)
             invoice_ids = []
-            print(invoices)
+
             # insert invoice in magento_account_invoice
             for invoice in invoices:
                 invoice.action_move_create()
