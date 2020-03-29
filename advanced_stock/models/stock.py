@@ -1,7 +1,7 @@
-from odoo import models, api, tools, _
+from odoo import models, api, tools, fields
 from odoo.tools import float_utils, float_compare
 from ...magento2_connector.utils.magento.rest import Client
-from odoo import tools
+from odoo import tools, _
 from odoo.exceptions import UserError
 
 
@@ -41,6 +41,13 @@ class ProductChangeQuantity(models.TransientModel):
         return {'type': 'ir.actions.act_window_close'}
 
 
+class StockQuant(models.Model):
+    _inherit = 'stock.quant'
+
+    original_qty = fields.Float(string="Origin Quantity", default=0)
+    updated_qty = fields.Boolean(default=False)
+
+
 class Inventory(models.Model):
     _inherit = "stock.inventory"
 
@@ -48,6 +55,17 @@ class Inventory(models.Model):
         self.action_check()
         self.write({'state': 'done'})
         self.post_inventory()
+        for e in self.line_ids:
+            if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+                stock_quant = self.env['stock.quant'].search(
+                    [('location_id', '=', self.location_id.id),
+                     ('product_id', '=', e.product_id.product_tmpl_id.variant_manage_stock.id)])
+
+                if stock_quant.original_qty != e.product_qty*e.product_id.deduct_amount_parent_product:
+                    stock_quant.sudo().write({
+                        'updated_qty': True,
+                        'original_qty': e.product_qty*e.product_id.deduct_amount_parent_product
+                    })
         return True
 
     def action_validate(self):
@@ -81,26 +99,23 @@ class Inventory(models.Model):
             inventory.line_ids._generate_moves()
 
             magento_backend = self.env['magento.backend'].search([])
-            for e in inventory.line_ids:
-                if e.product_id.product_tmpl_id.multiple_sku_one_stock:
-                    if e.product_id.id == e.product_id.product_tmpl_id.variant_manage_stock.id:
-                        e.product_id.product_tmpl_id.origin_quantity = e.product_qty
-                if e.product_id.is_magento_product and inventory.location_id.is_from_magento:
-                    try:
-                        params = {
-                            "sourceItems": [
-                                {
-                                    "sku": e.product_id.default_code,
-                                    "source_code": inventory.location_id.magento_source_code,
-                                    "quantity": e.product_qty,
-                                    "status": 1
-                                }
-                            ]
-                        }
-                        client = Client(magento_backend.web_url, magento_backend.access_token, True)
-                        client.post('rest/V1/inventory/source-items', arguments=params)
-                    except Exception as a:
-                        raise UserError(('Can not update quantity product on source magento - %s') % tools.ustr(a))
+            # for e in inventory.line_ids:
+            #     if e.product_id.is_magento_product and inventory.location_id.is_from_magento:
+            #         try:
+            #             params = {
+            #                 "sourceItems": [
+            #                     {
+            #                         "sku": e.product_id.default_code,
+            #                         "source_code": inventory.location_id.magento_source_code,
+            #                         "quantity": e.product_qty,
+            #                         "status": 1
+            #                     }
+            #                 ]
+            #             }
+            #             client = Client(magento_backend.web_url, magento_backend.access_token, True)
+            #             client.post('rest/V1/inventory/source-items', arguments=params)
+            #         except Exception as a:
+            #             raise UserError(('Can not update quantity product on source magento - %s') % tools.ustr(a))
 
 
 class InventoryLine(models.Model):

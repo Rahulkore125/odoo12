@@ -1,6 +1,7 @@
 from odoo import models, fields, api
 from odoo import tools
 from odoo.addons import decimal_precision as dp
+from datetime import datetime, date
 
 
 class SaleOrder(models.Model):
@@ -20,6 +21,7 @@ class SaleOrder(models.Model):
 
     currency_id = fields.Many2one('res.currency', readonly=True,
                                   default=lambda self: self.env.user.company_id.currency_id)
+    location_id = fields.Many2one('stock.location', string="Location")
 
     @api.depends('picking_ids')
     def _compute_has_a_delivery(self):
@@ -41,26 +43,37 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).create(vals_list)
         return res
 
-    # @api.multi
-    # def action_confirm(self):
-    #     result = super(SaleOrder, self).action_confirm()
-    #     for so in self:
-    #         stock_pickings = self.env['stock.picking'].search(
-    #             [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
-    #         for stock_picking in stock_pickings:
-    #             for move_line in stock_picking.move_lines:
-    #                 move_line.quantity_done = move_line.product_uom_qty
-    #             stock_picking.action_done()
-    #             stock_picking.date_done_delivery = date.today()
-    #
-    #             if stock_picking.is_return_picking:
-    #                 pass
-    #             else:
-    #                 for e in stock_picking.move_ids_without_package:
-    #                     if e.product_id.product_tmpl_id.multiple_sku_one_stock:
-    #                         e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity - e.quantity_done * e.product_id.deduct_amount_parent_product
-    #         self.date_confirm_order = date.today()
-    #         return result
+    @api.multi
+    def action_confirm(self):
+        result = super(SaleOrder, self).action_confirm()
+        for so in self:
+                # if stock_picking.is_return_picking:
+                #     pass
+                # else:
+                #     for e in stock_picking.move_ids_without_package:
+                #         if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+                #             e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity - e.quantity_done * e.product_id.deduct_amount_parent_product
+            for e in self.order_line:
+                if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+                    stock_quant = self.env['stock.quant'].search(
+                            [('location_id', '=', self.location_id.id),
+                             ('product_id', '=', e.product_id.product_tmpl_id.variant_manage_stock.id)])
+
+                    stock_quant.sudo().write({
+                            'updated_qty': True,
+                            'original_qty': stock_quant.quantity - e.product_uom_qty*e.product_id.deduct_amount_parent_product
+                    })
+                stock_pickings = self.env['stock.picking'].search(
+                    [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
+                for stock_picking in stock_pickings:
+                    for move_line in stock_picking.move_lines:
+                        move_line.quantity_done = move_line.product_uom_qty
+                    stock_picking.action_done()
+                    stock_picking.date_done_delivery = date.today()
+
+
+            self.date_confirm_order = date.today()
+            return result
 
     def _amount_all(self):
         """
