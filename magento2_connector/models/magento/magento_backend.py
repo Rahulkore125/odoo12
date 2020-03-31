@@ -986,7 +986,14 @@ class MagentoBackend(models.Model):
 
                             for e in picking.move_ids_without_package:
                                 if e.product_id.product_tmpl_id.multiple_sku_one_stock:
-                                    e.product_id.product_tmpl_id.origin_quantity = e.product_id.product_tmpl_id.origin_quantity + e.quantity_done * e.product_id.deduct_amount_parent_product
+                                    stock_quant = self.env['stock.quant'].search(
+                                        [('location_id', '=', picking.location_dest_id.id),
+                                         ('product_id', '=', e.product_id.product_tmpl_id.variant_manage_stock.id)])
+
+                                    stock_quant.sudo().write({
+                                        'updated_qty': True,
+                                        'original_qty': stock_quant.quantity + e.product_uom_qty * e.product_id.deduct_amount_parent_product
+                                    })
                             origin_picking = self.env['stock.picking'].search(
                                 [('id', '=', stock_picking.id)])
                             origin_picking.has_return_picking = True

@@ -466,6 +466,12 @@ class Order(Client):
                         else:
                             partner_id = partner_invoice_id
 
+                    #add source on sale order
+                    if 'order_source_code' in order['extension_attributes']:
+                        source = context.env['stock.location'].search(
+                            [('magento_source_code', '=', order['extension_attributes']['order_source_code'])])
+                    else:
+                        source = False
                     sale_orders.append({'information':
                                             {'name': name,
                                              'partner_id': partner_id,
@@ -479,7 +485,8 @@ class Order(Client):
                                              'carrier_id': carrier_id if carrier_id is not None else False,
                                              'is_magento_sale_order': True,
                                              'currency_id': currency,
-                                             'payment_method': payment_method
+                                             'payment_method': payment_method,
+                                             'location_id': source.id if len(source) > 0 else False
                                              # 'note': ("Apply discount code:" + str(coupon_code)) if coupon_code != '' else None
                                              },
                                         'status': state
@@ -606,28 +613,7 @@ class Order(Client):
 
                 for e in sale_order_created:
                     e['information'].action_confirm()
-                    stock_pickings = e['information'].picking_ids
-                    if 'order_source_code' in order['extension_attributes']:
-                        source = context.env['stock.location'].search(
-                            [('magento_source_code', '=', order['extension_attributes']['order_source_code'])])
-                    else:
-                        source = []
 
-                    for stock_picking in stock_pickings:
-                        for move_line in stock_picking.move_lines:
-                            move_line.quantity_done = move_line.product_uom_qty
-
-                        for move_line_id in stock_picking.move_line_ids:
-                            if len(source) > 0:
-                                move_line_id.location_id = source.id
-                        stock_picking.action_done()
-                        stock_picking.date_done_delivery = date.today()
-                        if stock_picking.is_return_picking:
-                            pass
-                        else:
-                            for f in stock_picking.move_ids_without_package:
-                                if f.product_id.product_tmpl_id.multiple_sku_one_stock:
-                                    f.product_id.product_tmpl_id.origin_quantity = f.product_id.product_tmpl_id.origin_quantity - f.quantity_done * f.product_id.deduct_amount_parent_product
                     context.env.cr.execute(
                         """UPDATE sale_order SET state = %s WHERE id = %s""", (str(e['status']), e['information'].id))
 

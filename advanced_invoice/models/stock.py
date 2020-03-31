@@ -35,7 +35,7 @@ class StockReturnPicking(models.TransientModel):
                     'quantity': e.quantity
                 })
                 invoice_lines_update.append(invoice_lines_copy[e.product_id.id].id)
-        print(invoice_lines_update)
+
         refund.with_context({'active_ids': [invoice.id]}).compute_refund(mode='refund')
         credit_note = self.env['account.invoice'].search([('refund_invoice_id', '=', invoice.id)])
         for e in credit_note:
