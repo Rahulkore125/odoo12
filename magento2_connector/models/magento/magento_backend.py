@@ -979,11 +979,6 @@ class MagentoBackend(models.Model):
                                 if len(source) > 0:
                                     move_line_id.location_dest_id = source.id
 
-                            picking.action_done()
-                            picking.is_return_picking = True
-
-                            picking.date_return = date.today()
-
                             for e in picking.move_ids_without_package:
                                 if e.product_id.product_tmpl_id.multiple_sku_one_stock:
                                     stock_quant = self.env['stock.quant'].search(
@@ -994,6 +989,12 @@ class MagentoBackend(models.Model):
                                         'updated_qty': True,
                                         'original_qty': stock_quant.quantity + e.product_uom_qty * e.product_id.deduct_amount_parent_product
                                     })
+
+                            picking.action_done()
+                            picking.is_return_picking = True
+
+                            picking.date_return = date.today()
+
                             origin_picking = self.env['stock.picking'].search(
                                 [('id', '=', stock_picking.id)])
                             origin_picking.has_return_picking = True
