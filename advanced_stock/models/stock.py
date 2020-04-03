@@ -51,20 +51,23 @@ class StockQuant(models.Model):
 class Inventory(models.Model):
     _inherit = "stock.inventory"
 
+    update_to_magento = fields.Boolean(default=False)
+
     def _action_done(self):
         self.action_check()
         self.write({'state': 'done'})
         self.post_inventory()
+        print('mang chung')
         for e in self.line_ids:
             if e.product_id.product_tmpl_id.multiple_sku_one_stock:
                 stock_quant = self.env['stock.quant'].search(
                     [('location_id', '=', self.location_id.id),
                      ('product_id', '=', e.product_id.product_tmpl_id.variant_manage_stock.id)])
 
-                if stock_quant.original_qty != e.product_qty*e.product_id.deduct_amount_parent_product:
+                if stock_quant.original_qty != e.product_qty * e.product_id.deduct_amount_parent_product:
                     stock_quant.sudo().write({
                         'updated_qty': True,
-                        'original_qty': e.product_qty*e.product_id.deduct_amount_parent_product
+                        'original_qty': e.product_qty * e.product_id.deduct_amount_parent_product
                     })
         return True
 
@@ -89,6 +92,51 @@ class Inventory(models.Model):
             }
         else:
             self._action_done()
+            magento_backend = self.env['magento.backend'].search([])
+            for e in self.line_ids:
+                i = 0
+                product_template_multiple_sku = {}
+                if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+                    if not self.update_to_magento:
+                        for f in e.product_id.product_tmpl_id.product_variant_ids:
+                            if f.is_magento_product and self.location_id.is_from_magento:
+                                try:
+                                    params = {
+                                        "sourceItems": [
+                                            {
+                                                "sku": f.default_code,
+                                                "source_code": self.location_id.magento_source_code,
+                                                "quantity": e.product_qty * e.product_id.deduct_amount_parent_product / f.deduct_amount_parent_product,
+                                                "status": 1
+                                            }
+                                        ]
+                                    }
+                                    client = Client(magento_backend.web_url, magento_backend.access_token, True)
+                                    client.post('rest/V1/inventory/source-items', arguments=params)
+
+                                    i = i + 1
+                                    print(i)
+
+                                except Exception as a:
+                                    raise UserError(
+                                        ('Can not update quantity product on source magento - %s') % tools.ustr(a))
+                else:
+                    if e.product_id.is_magento_product and self.location_id.is_from_magento:
+                        try:
+                            params = {
+                                "sourceItems": [
+                                    {
+                                        "sku": e.product_id.default_code,
+                                        "source_code": self.location_id.magento_source_code,
+                                        "quantity": e.product_qty,
+                                        "status": 1
+                                    }
+                                ]
+                            }
+                            client = Client(magento_backend.web_url, magento_backend.access_token, True)
+                            client.post('rest/V1/inventory/source-items', arguments=params)
+                        except Exception as a:
+                            raise UserError(('Can not update quantity product on source magento - %s') % tools.ustr(a))
 
     def action_check(self):
         """ Checks the inventory and computes the stock move to do """
@@ -97,25 +145,6 @@ class Inventory(models.Model):
             # first remove the existing stock moves linked to this inventory
             inventory.mapped('move_ids').unlink()
             inventory.line_ids._generate_moves()
-
-            magento_backend = self.env['magento.backend'].search([])
-            # for e in inventory.line_ids:
-            #     if e.product_id.is_magento_product and inventory.location_id.is_from_magento:
-            #         try:
-            #             params = {
-            #                 "sourceItems": [
-            #                     {
-            #                         "sku": e.product_id.default_code,
-            #                         "source_code": inventory.location_id.magento_source_code,
-            #                         "quantity": e.product_qty,
-            #                         "status": 1
-            #                     }
-            #                 ]
-            #             }
-            #             client = Client(magento_backend.web_url, magento_backend.access_token, True)
-            #             client.post('rest/V1/inventory/source-items', arguments=params)
-            #         except Exception as a:
-            #             raise UserError(('Can not update quantity product on source magento - %s') % tools.ustr(a))
 
 
 class InventoryLine(models.Model):

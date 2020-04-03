@@ -50,12 +50,12 @@ class SaleOrder(models.Model):
             for e in self.order_line:
                 if e.product_id.product_tmpl_id.multiple_sku_one_stock:
                     stock_quant = self.env['stock.quant'].search(
-                            [('location_id', '=', self.location_id.id),
-                             ('product_id', '=', e.product_id.product_tmpl_id.variant_manage_stock.id)])
+                        [('location_id', '=', self.location_id.id),
+                         ('product_id', '=', e.product_id.product_tmpl_id.variant_manage_stock.id)])
 
                     stock_quant.sudo().write({
-                            'updated_qty': True,
-                            'original_qty': stock_quant.quantity - e.product_uom_qty*e.product_id.deduct_amount_parent_product
+                        'updated_qty': True,
+                        'original_qty': stock_quant.quantity - e.product_uom_qty * e.product_id.deduct_amount_parent_product
                     })
             stock_pickings = self.env['stock.picking'].search(
                     [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])

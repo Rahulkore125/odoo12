@@ -1,7 +1,8 @@
 from datetime import timedelta
-
+from odoo.exceptions import UserError
 from odoo import models, fields, api, tools
 from datetime import date, datetime
+from ...magento2_connector.utils.magento.rest import Client
 
 
 class ProductProduct(models.Model):
@@ -48,29 +49,37 @@ class ProductProduct(models.Model):
         if not dates_in_the_past:
             for f in template_qty:
                 template = self.env['product.template'].search([('id', '=', f)])
-                stock_quants = self.env['stock.quant'].search([('product_id', '=', template.variant_manage_stock.id), ('updated_qty', '=', True)])
+                stock_quants = self.env['stock.quant'].search(
+                    [('product_id', '=', template.variant_manage_stock.id), ('updated_qty', '=', True)])
 
                 for e in stock_quants:
-                    line_ids = []
-                    for t in template.product_variant_ids:
-                        line_ids.append((0, 0,
-                                        {'product_id': t.id, 'location_id': e.location_id.id,
-                                        'product_qty': e.original_qty / t.deduct_amount_parent_product}))
+                    if e.updated_qty:
+                        line_ids = []
+                        for t in template.product_variant_ids:
+                            line_ids.append((0, 0,
+                                             {'product_id': t.id, 'location_id': e.location_id.id,
+                                              'product_qty': e.original_qty / t.deduct_amount_parent_product}))
 
-                    stock_inventory = self.env['stock.inventory'].create({
-                        'location_id': e.location_id.id,
-                        'date': date.today(),
-                        'filter': 'partial',
-                        'line_ids': line_ids,
-                        'name': ('INV: %s') % tools.ustr(template.name)
-                    })
+                        stock_inventory = self.env['stock.inventory'].create({
+                            'location_id': e.location_id.id,
+                            'date': date.today(),
+                            'filter': 'partial',
+                            'line_ids': line_ids,
+                            'name': ('INV: %s') % tools.ustr(template.name)
+                        })
+                        stock_inventory.update_to_magento = True
 
-                    stock_inventory.action_validate()
-                    e.updated_qty = False
+                        stock_inventory.action_validate()
+
+                        e.sudo().write({
+                            'updated_qty': False
+                        })
+                        print('def')
 
         res = super(ProductProduct, self)._compute_quantities_dict(self._context.get('lot_id'),
                                                                    self._context.get('owner_id'),
                                                                    self._context.get('package_id'),
                                                                    self._context.get('from_date'),
                                                                    to_date=to_date)
+
         return res
