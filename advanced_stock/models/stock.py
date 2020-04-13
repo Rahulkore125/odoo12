@@ -67,7 +67,7 @@ class Inventory(models.Model):
                 if stock_quant.original_qty != e.product_qty * e.product_id.deduct_amount_parent_product:
                     stock_quant.sudo().write({
                         'updated_qty': True,
-                        'original_qty': e.product_qty * e.product_id.deduct_amount_parent_product
+                        'original_qty': stock_quant.quantity - e.product_uom_qty * e.product_id.deduct_amount_parent_product
                     })
         return True
 
