@@ -67,8 +67,9 @@ class Inventory(models.Model):
                 if stock_quant.original_qty != e.product_qty * e.product_id.deduct_amount_parent_product:
                     stock_quant.sudo().write({
                         'updated_qty': True,
-                        'original_qty': stock_quant.quantity - e.product_uom_qty * e.product_id.deduct_amount_parent_product
+                        'original_qty': e.product_qty * e.product_id.deduct_amount_parent_product
                     })
+
         return True
 
     def action_validate(self):
@@ -94,8 +95,6 @@ class Inventory(models.Model):
             self._action_done()
             magento_backend = self.env['magento.backend'].search([])
             for e in self.line_ids:
-                i = 0
-                product_template_multiple_sku = {}
                 if e.product_id.product_tmpl_id.multiple_sku_one_stock:
                     if not self.update_to_magento:
                         for f in e.product_id.product_tmpl_id.product_variant_ids:
@@ -111,7 +110,6 @@ class Inventory(models.Model):
                                             }
                                         ]
                                     }
-                                    print(e.product_qty * e.product_id.deduct_amount_parent_product / f.deduct_amount_parent_product)
                                     client = Client(magento_backend.web_url, magento_backend.access_token, True)
                                     client.post('rest/V1/inventory/source-items', arguments=params)
 
@@ -120,7 +118,6 @@ class Inventory(models.Model):
                                         ('Can not update quantity product on source magento - %s') % tools.ustr(a))
                 else:
                     if e.product_id.is_magento_product and self.location_id.is_from_magento:
-                        print(544554)
                         try:
                             params = {
                                 "sourceItems": [
@@ -132,8 +129,10 @@ class Inventory(models.Model):
                                     }
                                 ]
                             }
+
                             client = Client(magento_backend.web_url, magento_backend.access_token, True)
                             client.post('rest/V1/inventory/source-items', arguments=params)
+
                         except Exception as a:
                             raise UserError(('Can not update quantity product on source magento - %s') % tools.ustr(a))
 
