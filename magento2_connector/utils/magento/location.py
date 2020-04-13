@@ -11,7 +11,7 @@ class Location(Client):
         for source in sources:
             odoo_location = context.env['stock.location'].search(
                 [('is_from_magento', '=', True), ('magento_source_code', '=', source['source_code'])])
-            warehouse_location = context.env['stock.warehouse'].search([]).view_location_id
+            warehouse_location = context.env['stock.warehouse'].search([('active', '=', True)]).view_location_id
 
             if len(odoo_location) > 0:
                 odoo_location.write({

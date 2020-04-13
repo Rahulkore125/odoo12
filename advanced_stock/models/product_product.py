@@ -74,7 +74,6 @@ class ProductProduct(models.Model):
                         e.sudo().write({
                             'updated_qty': False
                         })
-                        print('def')
 
         res = super(ProductProduct, self)._compute_quantities_dict(self._context.get('lot_id'),
                                                                    self._context.get('owner_id'),

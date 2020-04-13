@@ -15,7 +15,8 @@ class ProductType(models.Model):
                        ('magento_downloadable', 'Magento Downloadable'),
                        ('magento_configurable', 'Magento Configurable'),
                        ('magento_grouped', 'Magento Grouped'),
-                       ('magento_bundle', 'Magento Bundle')]
+                       ('magento_bundle', 'Magento Bundle'),
+                       ('magento_giftcard', 'Magento Giftcard')]
     )
     magento_product_type = fields.Selection(string="Magento Product Type",
                                             selection=[('consu', 'Consumable'),
@@ -25,7 +26,8 @@ class ProductType(models.Model):
                                                        ('magento_downloadable', 'Magento Downloadable'),
                                                        ('magento_configurable', 'Magento Configurable'),
                                                        ('magento_grouped', 'Magento Grouped'),
-                                                       ('magento_bundle', 'Magento Bundle')],
+                                                       ('magento_bundle', 'Magento Bundle'),
+                                                       ('magento_giftcard', 'Magento Giftcard')],
                                             required=False, )
     is_magento_product = fields.Boolean("Is Magento Product")
     categories = fields.Many2many(string="Categories", comodel_name='product.category')

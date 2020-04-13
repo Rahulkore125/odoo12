@@ -1,7 +1,6 @@
 # -*- coding: UTF-8 -*-
 # -*- coding: UTF-8 -*-
-# from bs4 import BeautifulSoup
-#
+
 from odoo.exceptions import UserError
 from odoo.http import request
 from ..magento.rest import Client
@@ -228,7 +227,7 @@ class Product(Client):
                 for rec in custom_attributes:
                     if rec['attribute_code'] == 'short_description':
                         description = rec['value']
-                        description = BeautifulSoup(description).get_text()
+
                         break
                 # add category
                 categories = []

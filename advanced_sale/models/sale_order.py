@@ -55,8 +55,9 @@ class SaleOrder(models.Model):
 
                     stock_quant.sudo().write({
                         'updated_qty': True,
-                        'original_qty': stock_quant.quantity - e.product_uom_qty * e.product_id.deduct_amount_parent_product
+                        'original_qty': stock_quant.original_qty - e.product_uom_qty * e.product_id.deduct_amount_parent_product
                     })
+
             stock_pickings = self.env['stock.picking'].search(
                     [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
 

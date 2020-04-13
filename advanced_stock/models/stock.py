@@ -57,7 +57,7 @@ class Inventory(models.Model):
         self.action_check()
         self.write({'state': 'done'})
         self.post_inventory()
-        print('mang chung')
+
         for e in self.line_ids:
             if e.product_id.product_tmpl_id.multiple_sku_one_stock:
                 stock_quant = self.env['stock.quant'].search(
@@ -111,17 +111,16 @@ class Inventory(models.Model):
                                             }
                                         ]
                                     }
+                                    print(e.product_qty * e.product_id.deduct_amount_parent_product / f.deduct_amount_parent_product)
                                     client = Client(magento_backend.web_url, magento_backend.access_token, True)
                                     client.post('rest/V1/inventory/source-items', arguments=params)
-
-                                    i = i + 1
-                                    print(i)
 
                                 except Exception as a:
                                     raise UserError(
                                         ('Can not update quantity product on source magento - %s') % tools.ustr(a))
                 else:
                     if e.product_id.is_magento_product and self.location_id.is_from_magento:
+                        print(544554)
                         try:
                             params = {
                                 "sourceItems": [

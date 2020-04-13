@@ -135,14 +135,7 @@ class Order(Client):
                         current_partner = context.env.cr.fetchone()
                         if current_partner and len(current_partner) > 0:
                             partner_id = current_partner[0]
-                    #
-                    # partner_invoice_id = order['billing_address']['customer_address_id']
 
-                    #
-                    # # address invoice
-                    # b = context.env.cr.execute(
-                    #     "SELECT id FROM res_partner WHERE magento_customer_id=%s AND magento_address_id=%s AND backend_id=%s LIMIT 1" % (
-                    #     order['customer_id'], partner_invoice_id, backend_id))
                     if 'customer_address_id' in order['billing_address']:
                         if 'customer_id' in order:
                             address_id = order['customer_id']
