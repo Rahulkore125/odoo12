@@ -71,6 +71,8 @@ class SaleHnkReport(models.Model):
         heineken_product += magento_demo_service_product
         heineken_product += magento_demo_simple_product
 
+        print(previous_day_date)
+        print(datetime.now())
         qty_previous_day = self.env['product.product'].browse(heineken_product.ids)._compute_quantities_dict(
             self._context.get('lot_id'),
             self._context.get(

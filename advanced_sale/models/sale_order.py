@@ -2,7 +2,10 @@ from odoo import models, fields, api
 from odoo import tools
 from odoo.addons import decimal_precision as dp
 from datetime import datetime, date
-
+from ...magento2_connector.utils.magento.rest import Client
+from odoo import tools, _
+from odoo.exceptions import UserError
+from odoo.http import request
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -21,7 +24,7 @@ class SaleOrder(models.Model):
 
     currency_id = fields.Many2one('res.currency', readonly=True,
                                   default=lambda self: self.env.user.company_id.currency_id)
-    location_id = fields.Many2one('stock.location', string="Location")
+    location_id = fields.Many2one('stock.location', string="Location", domain=[('is_from_magento', '=', True)])
 
     @api.depends('picking_ids')
     def _compute_has_a_delivery(self):
@@ -47,10 +50,11 @@ class SaleOrder(models.Model):
     def action_confirm(self):
         result = super(SaleOrder, self).action_confirm()
         for so in self:
-            for e in self.order_line:
+
+            for e in so.order_line:
                 if e.product_id.product_tmpl_id.multiple_sku_one_stock:
-                    stock_quant = self.env['stock.quant'].search(
-                        [('location_id', '=', self.location_id.id),
+                    stock_quant = so.env['stock.quant'].search(
+                        [('location_id', '=', so.location_id.id),
                          ('product_id', '=', e.product_id.product_tmpl_id.variant_manage_stock.id)])
 
                     stock_quant.sudo().write({
@@ -58,8 +62,8 @@ class SaleOrder(models.Model):
                         'original_qty': stock_quant.original_qty - e.product_uom_qty * e.product_id.deduct_amount_parent_product
                     })
 
-            stock_pickings = self.env['stock.picking'].search(
-                    [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
+            stock_pickings = so.env['stock.picking'].search(
+                [('sale_id', '=', so.id), ('picking_type_id.code', '=', 'outgoing')])
 
             for stock_picking in stock_pickings:
                 for move_line in stock_picking.move_lines:
@@ -72,7 +76,63 @@ class SaleOrder(models.Model):
                 stock_picking.action_done()
                 stock_picking.date_done_delivery = date.today()
 
-            self.date_confirm_order = date.today()
+            so.date_confirm_order = date.today()
+
+            products = request.env['product.product'].search([])
+            request.env['product.product'].browse(products.ids)._compute_quantities_dict(
+                so._context.get('lot_id'),
+                so._context.get(
+                    'owner_id'),
+                so._context.get(
+                    'package_id'),
+                so._context.get(
+                    'from_date'),
+                to_date=datetime.today())
+            for e in so.order_line:
+                if e.product_id.product_tmpl_id.multiple_sku_one_stock:
+                    stock_quant = so.env['stock.quant'].search(
+                        [('product_id', '=', e.product_id.product_tmpl_id.variant_manage_stock.id),
+                         ('location_id', '=', so.location_id.id)])
+                    magento_backend = so.env['magento.backend'].search([])
+                    for f in e.product_id.product_tmpl_id.product_variant_ids:
+                        if f.is_magento_product and so.location_id.is_from_magento:
+                            try:
+                                params = {
+                                    "sourceItems": [
+                                        {
+                                            "sku": f.default_code,
+                                            "source_code": so.location_id.magento_source_code,
+                                            "quantity": stock_quant.quantity * e.product_id.deduct_amount_parent_product / f.deduct_amount_parent_product,
+                                            "status": 1
+                                        }
+                                    ]
+                                }
+                                client = Client(magento_backend.web_url, magento_backend.access_token, True)
+                                client.post('rest/V1/inventory/source-items', arguments=params)
+
+                            except Exception as a:
+                                raise UserError(
+                                    ('Can not update quantity product on source magento - %s') % tools.ustr(a))
+                else:
+                    magento_backend = so.env['magento.backend'].search([])
+                    stock_quant = so.env['stock.quant'].search(
+                        [('product_id', '=', e.product_id.id), ('location_id', '=', so.location_id.id)])
+                    if e.product_id.is_magento_product and so.location_id.is_from_magento:
+                        try:
+                            params = {
+                                "sourceItems": [
+                                    {
+                                        "sku": e.product_id.default_code,
+                                        "source_code": so.location_id.magento_source_code,
+                                        "quantity": stock_quant.quantity,
+                                        "status": 1
+                                    }
+                                ]
+                            }
+                            client = Client(magento_backend.web_url, magento_backend.access_token, True)
+                            client.post('rest/V1/inventory/source-items', arguments=params)
+                        except Exception as a:
+                            raise UserError(('Can not update quantity product on source magento - %s') % tools.ustr(a))
             return result
 
     def _amount_all(self):

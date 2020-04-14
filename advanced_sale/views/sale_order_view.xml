@@ -90,7 +90,7 @@
                     </div>
                      <label for="location_id"/>
                     <div name="location_selection">
-                        <field name="location_id" required="1"/>
+                        <field name="location_id" required="1" options='{"no_create": True}'/>
                     </div>
                 </xpath>
                 <xpath expr="//field[@name='partner_invoice_id']" position="attributes">
